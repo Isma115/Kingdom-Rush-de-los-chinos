@@ -79,7 +79,7 @@ function draw() {
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     // Resaltar casillas donde SÍ se puede construir con un verde ligeramente más claro
-    for (let gx = 0; gx < 24; gx++) {          // 1200px / 50px = 24 columnas (nuevo ancho)
+    for (let gx = 0; gx < 38; gx++) {          // 1900px / 50px = 38 columnas (nuevo ancho)
         for (let gy = 0; gy < 10; gy++) {      // 500px / 50px = 10 filas
             let cx = gx * 50 + 25;
     let cy = gy * 50 + 25;
@@ -96,7 +96,7 @@ function draw() {
     ctx.lineWidth = 1;
     
     // Dibujar grid solo en casillas donde se puede construir (patrón tablero de ajedrez)
-    for (let gx = 0; gx < 24; gx++) {          // 1200px / 50px = 24 columnas (nuevo ancho)
+    for (let gx = 0; gx < 38; gx++) {          // 1900px / 50px = 38 columnas (nuevo ancho)
         for (let gy = 0; gy < 10; gy++) {      // 500px / 50px = 10 filas
             // Solo dibujar si cumple el patrón de tablero de ajedrez
   

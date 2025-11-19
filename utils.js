@@ -12,8 +12,8 @@ function canBuild(x, y) {
     if ((gridX + gridY) % 2 !== 0) return false;
     // Fuera de bordes
     // (Nota: Los bordes originales ya implican los centros [25, 475])
-    if (x < 25 || x > 1175 || y < 25 || y > 475) return false;
-    // 25 = centro del primer cuadrado, 1175 = centro del último (nuevo ancho: 1200px)
+    if (x < 25 || x > 1875 || y < 25 || y > 475) return false;
+    // 25 = centro del primer cuadrado, 1875 = centro del último (nuevo ancho: 1900px)
 
     // Colisión con torres existentes (radio 35 como antes)
     for (let t of towers) {

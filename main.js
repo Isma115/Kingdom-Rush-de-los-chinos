@@ -1,8 +1,9 @@
-/*sección [CÓDIGO PRINCIPAL] Código principal de todo el juego (main)*/
-// Archivo: main.js
-
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+
+// Expandir el canvas para que ocupe más espacio en anchura
+canvas.width = 1900;
+canvas.height = 500;
 
 // Iniciar la primera oleada
 gameState.spawnQueue = generateWave();
@@ -31,5 +32,3 @@ function gameLoop(timestamp) {
     if(gameState.active) requestAnimationFrame(gameLoop); 
 }
 gameLoop();
-
-/*[Fin de sección]*/

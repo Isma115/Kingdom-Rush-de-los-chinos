@@ -2,8 +2,8 @@
 // --- MAPA ---
 const maps = [
     { name: "Serpiente", points: [{x:0,y:100}, {x:350,y:100}, {x:350,y:400}, {x:700,y:400}, {x:700,y:150}, {x:1050,y:150}, {x:1050,y:350}, {x:1400,y:350}, {x:1400,y:250}, {x:1650,y:250}, {x:1650,y:450}, {x:1900,y:450}] },
-    { name: "Herradura", points: [{x:0,y:400}, {x:400,y:400}, {x:400,y:100}, {x:800,y:100}, {x:800,y:400}, {x:1200,y:400}] },
-    { name: "ZigZag", points: [{x:0,y:50}, {x:300,y:50}, {x:500,y:250}, {x:800,y:250}, {x:1000,y:50}, {x:1200,y:50}, {x:1200,y:450}, {x:1400,y:450}] }
+    { name: "Herradura", points: [{x:0,y:400}, {x:550,y:400}, {x:550,y:100}, {x:1100,y:100}, {x:1100,y:400}, {x:1650,y:400}] },
+    { name: "ZigZag", points: [{x:0,y:50}, {x:400,y:50}, {x:700,y:250}, {x:1100,y:250}, {x:1400,y:50}, {x:1650,y:50}, {x:1650,y:450}, {x:1900,y:450}] }
 ];
 const selectedMap = maps[Math.floor(Math.random() * maps.length)];
 const path = selectedMap.points;
