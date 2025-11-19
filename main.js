@@ -1,4 +1,3 @@
-// main.js
 /*sección [CÓDIGO PRINCIPAL] Código principal de todo el juego (main)*/
 // Archivo: main.js
 
