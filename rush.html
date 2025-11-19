@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Kingdom Rush: Upgrade System</title>
+    <style>
+        body {
+            background-color: #1a1a1a;
+ color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 10px;
+ user-select: none;
+        }
+        h1 { margin: 5px; text-shadow: 2px 2px 0 #000;
+ font-size: 24px; color: #d4af37; }
+        .subtitle { color: #aaa; font-size: 14px; margin-bottom: 10px;
+ }
+        
+        #game-wrapper {
+            position: relative;
+ box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            border: 4px solid #5d4037;
+        }
+        canvas {
+            background-color: #5c9646;
+ display: block;
+            cursor: crosshair;
+        }
+        #ui-bar {
+            width: 800px;
+ background: #3e2723;
+            padding: 10px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #8d6e63;
+ }
+        .stats-group { display: flex; gap: 15px; font-size: 18px;
+ }
+        .stat { font-weight: bold; color: #ffecb3;
+ }
+        
+        #diff-meter {
+            color: #ff5252;
+ font-size: 14px;
+            border: 1px solid #555;
+            padding: 2px 8px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 4px;
+ }
+
+        #controls {
+            width: 800px;
+ background: #2d1e15;
+            padding: 10px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            border-top: 2px solid #5d4037;
+ }
+        .btn {
+            padding: 10px 15px;
+ cursor: pointer;
+            border: 2px solid #6d4c41;
+            background: #4e342e;
+            color: #d7ccc8;
+            font-weight: bold;
+            border-radius: 4px;
+            transition: 0.2s;
+            display: flex;
+            flex-direction: column;
+ align-items: center;
+            min-width: 100px;
+        }
+        .btn:hover { background: #5d4037; transform: translateY(-2px);
+ }
+        .btn.selected {
+            border-color: #ffd700;
+ background: #3e2723;
+            box-shadow: 0 0 10px #ffd700;
+            color: white;
+        }
+        .btn small { font-size: 0.8em;
+ color: #a1887f; margin-top: 2px; }
+
+        #game-over {
+            position: absolute;
+ top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95);
+            padding: 40px;
+            text-align: center;
+            border: 4px solid #c62828;
+            border-radius: 10px;
+ display: none;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🛡️ Kingdom Rush: Mejoras de Torre</h1>
+    <div class="subtitle">💡 Tip: Haz <b>Doble Click</b> en una torre construida para mejorarla (x2 Coste)</div>
+    
+    <div id="ui-bar">
+        <div class="stats-group">
+            <div class="stat">❤️ <span id="lives">25</span></div>
+            <div class="stat">💰 <span id="gold">250</span></div>
+        </div>
+        <div class="stats-group">
+ 
+            <div id="diff-meter">Amenaza: 100%</div>
+            <div class="stat">💀 Oleada: <span id="wave">1</span></div>
+        </div>
+    </div>
+
+    <div id="game-wrapper">
+        <canvas id="gameCanvas" width="800" height="500"></canvas>
+        <div id="game-over">
+            <h2 style="color: #e53935; font-size: 40px; margin: 0;">REINO CAÍDO</h2>
+            <button class="btn" style="margin: 
+ 0 auto;" onclick="location.reload()">Nuevo Intento</button>
+        </div>
+    </div>
+
+    <div id="controls">
+        <button class="btn selected" onclick="selectTower('archer')">🏹 Arquero (70g)</button>
+    <button class="btn" onclick="selectTower('cannon')">💣 Cañón (150g)</button>
+    <button class="btn" onclick="selectTower('mine')">⛏️ Mina (100g)</button>
+    <!-- NUEVOS BOTONES DE TORRES -->
+    <button class="btn" onclick="selectTower('mage')">🔮 Mago (200g)</button>
+    <button class="btn" onclick="selectTower('sniper')">🎯 Francotirador (180g)</button>
+    <button class="btn" onclick="selectTower('ice')">❄️ Hielo (120g)</button>
+        
+    </div>
+    <!-- NUEVA SECCIÓN: Actualización del HTML para incluir botones de nuevas torres -->
+<!-- Añadir esto en el archivo HTML donde están los botones de las torres -->
+
+<div class="tower-selector">
+    
+</div>
+
+<script src="config.js"></script>
+<script src="aiDirector.js"></script>
+<script src="entities.js"></script>
+<script src="gameState.js"></script>
+<script src="gameLoop.js"></script>
+<script src="input.js"></script>
+<script src="utils.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
