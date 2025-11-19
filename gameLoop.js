@@ -2,24 +2,21 @@
 /*sección [GAMELOOP] Bucle principal del juego*/
 function update() {
     if (!gameState.active) return;
-
     aiDirector.timer++;
     if (aiDirector.timer >= aiDirector.checkInterval) {
         aiDirector.evaluate();
         aiDirector.timer = 0;
     }
-
     if (gameState.spawnQueue.length > 0) {
         if (gameState.spawnTimer <= 0) {
             enemies.push(new Enemy(gameState.spawnQueue.shift()));
             let lastEnemy = enemies[enemies.length-1];
-            gameState.spawnTimer = Math.max(20, 60 - (lastEnemy.speed * 10)); 
+            gameState.spawnTimer = Math.max(20, 60 - (lastEnemy.speed * 10));
         } else gameState.spawnTimer--;
     } else if (enemies.length === 0 && gameState.waveInProgress) {
         gameState.waveInProgress = false;
         gameState.waveTimer = 180;
     }
-
     if (!gameState.waveInProgress) {
         document.getElementById('wave').innerText = "Sig: " + Math.ceil(gameState.waveTimer/60);
         if (gameState.waveTimer <= 0) {
@@ -31,11 +28,10 @@ function update() {
     } else {
         document.getElementById('wave').innerText = gameState.wave;
     }
-
     enemies.forEach(e => e.update());
     towers.forEach(t => t.update());
     projectiles.forEach(p => p.update());
-    
+   
     for (let i = enemies.length - 1; i >= 0; i--) if (enemies[i].hp <= 0) enemies.splice(i, 1);
     for (let i = projectiles.length - 1; i >= 0; i--) if (projectiles[i].hit) projectiles.splice(i, 1);
     for (let i = floatText.length - 1; i >= 0; i--) {
@@ -43,13 +39,37 @@ function update() {
         floatText[i].life--;
         if(floatText[i].life <= 0) floatText.splice(i,1);
     }
+    // NUEVO: actualizar partículas (gameState.particles)
+    if (gameState.particles && Array.isArray(gameState.particles)) {
+        for (let i = gameState.particles.length - 1; i >= 0; i--) {
+            let pt = gameState.particles[i];
+            pt.x += pt.vx || 0;
+            pt.y += pt.vy || 0;
+            // aplicar gravedad leve para algunos tipos
+            if (!pt.noGravity) pt.vy += 0.03;
+            pt.life--;
+            if (pt.fade) {
+                pt.opacity = (pt.life / 60);
+            }
+            if (pt.life <= 0) gameState.particles.splice(i, 1);
+        }
+    }
 }
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     // === FONDO CON GRID SUTIL Y CASILLAS CONSTRUIBLES ===
+    // Añadir ligera variación de iluminación y un brillo ambiental dinámico
+    // capa base
     ctx.fillStyle = '#5c9646';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Luz ambiental superior (sutil gradiente)
+    let bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    bgGrad.addColorStop(0, hexToRgba('#5c9646', 0.04));
+    bgGrad.addColorStop(1, hexToRgba('#2e7d32', 0.04));
+    ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Resaltar casillas donde SÍ se puede construir con un verde ligeramente más claro
@@ -113,6 +133,20 @@ function draw() {
     ctx.beginPath(); ctx.moveTo(path[0].x, path[0].y);
     path.forEach(p => ctx.lineTo(p.x, p.y)); ctx.stroke();
 
+    // === PARTICULAS (debajo de entidades para profundidad) ===
+    if (gameState.particles && Array.isArray(gameState.particles)) {
+        for (let pt of gameState.particles) {
+            ctx.globalAlpha = Math.max(0.03, Math.min(1, pt.opacity !== undefined ? pt.opacity : (pt.life / 60)));
+            // mezcla de color simple
+            if (pt.color) ctx.fillStyle = pt.color;
+            else ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(pt.x, pt.y, pt.size || 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+        }
+    }
+
     // === ENTIDADES ===
     towers.forEach(t => t.draw());
     enemies.forEach(e => e.draw());
@@ -123,8 +157,28 @@ function draw() {
         ctx.fillStyle = ft.color;
         ctx.font = (ft.size || 14) + 'px Arial';
         ctx.textAlign = "center";
-        ctx.fillText(ft.text, ft.x, ft.y);
+        // Efecto de rebote sutil
+        let bob = Math.sin((60 - ft.life) * 0.12) * 4;
+        ctx.fillText(ft.text, ft.x, ft.y + bob);
     });
+
+    // === PARTICULAS (encima de todo para ciertos efectos) ===
+    if (gameState.particles && Array.isArray(gameState.particles)) {
+        for (let pt of gameState.particles) {
+            // dibujar de nuevo los pt con brillo si son especiales
+            if (pt.glow) {
+                ctx.globalAlpha = Math.max(0.02, Math.min(0.9, (pt.life / 60)));
+                let rg = ctx.createRadialGradient(pt.x, pt.y, 0, pt.x, pt.y, pt.size * 6);
+                rg.addColorStop(0, hexToRgba(pt.color || '#fff', 0.45));
+                rg.addColorStop(1, hexToRgba(pt.color || '#fff', 0));
+                ctx.fillStyle = rg;
+                ctx.beginPath();
+                ctx.arc(pt.x, pt.y, pt.size * 6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+    }
 }
 
 function addFloatText(text, x, y, color, size) {

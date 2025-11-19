@@ -75,4 +75,24 @@ function getEnemyColorByTier(rosterId) {
     // De blanco (más fácil) a negro (más difícil)
     return `#${hex}${hex}${hex}`; 
 }
+
+// Utilidad global: convierte HEX en RGBA
+function hexToRgba(hex, alpha = 1.0) {
+    // Eliminar el #
+    hex = hex.replace('#', '');
+
+    // Expandir formato corto (#abc → #aabbcc)
+    if (hex.length === 3) {
+        hex = hex.split('').map(h => h + h).join('');
+    }
+
+    // Convertir cada componente
+    const bigint = parseInt(hex, 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 /*[Fin de sección]*/

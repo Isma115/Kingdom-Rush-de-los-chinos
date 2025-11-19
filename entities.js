@@ -2,6 +2,38 @@
 /*sección [ENTIDADES] Gestión de entidades*/
 // --- CLASES ---
 
+// ==== FUNCIÓN GLOBAL PARA RECTÁNGULOS REDONDEADOS ====
+
+
+function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+    if (typeof radius === 'number') {
+        radius = { tl: radius, tr: radius, br: radius, bl: radius };
+    } else {
+        radius = {
+            tl: radius.tl || 0,
+            tr: radius.tr || 0,
+            br: radius.br || 0,
+            bl: radius.bl || 0
+        };
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(x + radius.tl, y);
+    ctx.lineTo(x + width - radius.tr, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+    ctx.lineTo(x + width, y + height - radius.br);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+    ctx.lineTo(x + radius.bl, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+    ctx.lineTo(x, y + radius.tl);
+    ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+    ctx.closePath();
+
+    if (fill) ctx.fill();
+    if (stroke) ctx.stroke();
+}
+
+
 class Enemy {
     constructor(rosterId) {
         // VERIFICAR que el rosterId existe antes de acceder a sus propiedades
@@ -245,38 +277,17 @@ class Tower {
         // Nivel 1 -> 2 = Coste Base * 2
         // Nivel 2 -> 3 = Coste Base * 4
         let upgradeCost = this.baseCost * Math.pow(2, this.level);
-        if (gameState.gold >= upgradeCost) {
-            gameState.gold -= upgradeCost;
-            this.level++;
-            // Mejorar Stats
-            this.stats.damage = Math.floor(this.stats.damage * 1.5);
-            // +50% Daño
-            this.stats.range = this.stats.range * 1.1;
-            // +10% Rango
-            
-            // CORRECCIÓN: Eliminar doble multiplicador para torres eco
-            // Las torres eco ya se benefician del aumento de daño estándar
-            
-            addFloatText("UPGRADE!", this.x, this.y - 30, "#00e5ff", 20);
-            addFloatText(`-${upgradeCost}g`, this.x, this.y - 10, "#ffeb3b", 16);
-            updateUI();
-
-            // Efecto visual de mejora: partículas y glow
-            if (gameState && Array.isArray(gameState.particles)) {
-                for (let i = 0; i < 8; i++) {
-                    gameState.particles.push({
-                        x: this.x + (Math.random()-0.5)*18,
-                        y: this.y + (Math.random()-0.5)*18,
-                        vx: (Math.random()-0.5) * 1.2,
-                        vy: -Math.random() * 1.5,
-                        life: 45,
-                        size: 2 + Math.random()*3,
-                        color: '#ffd54f',
-                        fade: true
-                    });
-                }
-            }
-        } else {
+            if (gameState.gold >= upgradeCost) {
+        gameState.gold -= upgradeCost;
+        this.level++;
+        this.stats.damage = Math.floor(this.stats.damage * 1.5);
+        this.stats.range = this.stats.range * 1.1;
+        addFloatText("UPGRADE!", this.x, this.y - 30, "#00e5ff", 20);
+        addFloatText(`-${upgradeCost}g`, this.x, this.y - 10, "#ffeb3b", 16);
+        Sounds.towerUpgrade(); // sonido mejora
+        updateUI();
+        // ... partículas ...
+    } else {
             addFloatText(`Necesitas ${upgradeCost}g`, this.x, this.y - 30, "red", 16);
         }
     }
@@ -387,80 +398,100 @@ class Tower {
 class Projectile {
     constructor(x, y, target, stats, towerType) {
         this.x = x;
-        this.y = y; this.target = target;
+        this.y = y; 
+        this.target = target;
         this.damage = stats.damage;
         this.speed = stats.projSpeed;
         this.hit = false;
-        this.isCannon = (stats.label === '💣');
+        this.isCannon = (stats.label === 'Bomb');
         this.towerType = towerType; // NUEVO: Tipo de torre que disparó
         // NUEVO: Efectos especiales
         this.isIce = (towerType === 'ice');
         this.isMage = (towerType === 'mage');
     }
-
     update() {
-        if (this.target.hp <= 0 && !this.isCannon && !this.isMage) { 
+        if (this.target.hp <= 0 && !this.isCannon && !this.isMage) {
             this.hit = true;
-            return; 
+            return;
         }
         let dx = this.target.x - this.x;
         let dy = this.target.y - this.y;
         let dist = Math.hypot(dx, dy);
-
         if (dist < this.speed) this.impact();
         else {
             this.x += (dx / dist) * this.speed;
             this.y += (dy / dist) * this.speed;
         }
     }
-
     impact() {
         this.hit = true;
+        
+        // SONIDOS DE DISPARO SEGÚN TIPO DE TORRE
+        if (this.towerType === 'archer' || this.towerType === 'sniper') {
+            Sounds.shootArrow();
+        } else if (this.towerType === 'cannon') {
+            Sounds.shootCannon();   // explosión al impactar
+        } else if (this.towerType === 'mage') {
+            Sounds.shootMage();
+        } else if (this.towerType === 'ice') {
+            Sounds.shootIce();
+        }
+
         if (this.isCannon) {
             enemies.forEach(e => {
-                if (Math.hypot(e.x - this.x, e.y - this.y) < 50) { 
+                if (Math.hypot(e.x - this.x, e.y - this.y) < 50) {
                     e.hp -= this.damage;
-                    if(e.hp <= 0) killEnemy(e);
+                    e.markHit(7);
+                    Sounds.enemyHit();
+                    if (e.hp <= 0) killEnemy(e);
                 }
             });
             addFloatText('BOOM', this.x, this.y, 'orange', 20);
+
         } else if (this.isMage) {
-            // NUEVO: Proyectil mágico que atraviesa enemigos
+            // Proyectil mágico que atraviesa
             let hitCount = 0;
             enemies.forEach(e => {
-                if (Math.hypot(e.x - this.x, e.y - this.y) < 60) { 
+                if (Math.hypot(e.x - this.x, e.y - this.y) < 60) {
                     e.hp -= this.damage;
+                    e.markHit(5);
+                    Sounds.enemyHit();
                     hitCount++;
-                    if(e.hp <= 0) killEnemy(e);
+                    if (e.hp <= 0) killEnemy(e);
                 }
             });
             if (hitCount > 1) {
                 addFloatText(`${hitCount} HITS`, this.x, this.y, '#7b1fa2', 16);
             }
+
         } else if (this.isIce) {
-            // NUEVO: Proyectil de hielo que ralentiza
             this.target.hp -= this.damage;
-            this.target.applySlow(90); // Ralentiza por 90 frames (1.5 segundos)
+            this.target.applySlow(90); // 1.5 segundos de ralentización
+            this.target.markHit(4);
+            Sounds.enemyHit();
             if (this.target.hp <= 0) killEnemy(this.target);
             addFloatText('SLOW', this.target.x, this.target.y, '#00bcd4', 14);
+
         } else {
+            // Disparo normal (arquero, francotirador, etc.)
             this.target.hp -= this.damage;
+            this.target.markHit(4);
+            Sounds.enemyHit();
             if (this.target.hp <= 0) killEnemy(this.target);
         }
     }
-
     draw() {
         if (this.isIce) {
-            // NUEVO: Proyectil de hielo azul
+            // Proyectil de hielo azul
             ctx.fillStyle = '#00bcd4';
-            ctx.beginPath(); 
-            ctx.arc(this.x, this.y, 4, 0, Math.PI * 2); 
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, 4, 0, Math.PI * 2);
             ctx.fill();
         } else if (this.isMage) {
-            // NUEVO: Proyectil mágico púrpura
+            // Proyectil mágico púrpura
             ctx.fillStyle = '#7b1fa2';
-            ctx.beginPath(); 
-            ctx.arc(this.x, this.y, 6, 0, Math.PI * 2); 
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, 6, 0, Math.PI * 2);
             ctx.fill();
             // Efecto brillante
             ctx.strokeStyle = '#e1bee7';
@@ -470,13 +501,143 @@ class Projectile {
             ctx.stroke();
         } else {
             ctx.fillStyle = this.isCannon ? 'black' : 'white';
-            ctx.beginPath(); 
-            ctx.arc(this.x, this.y, this.isCannon ? 5 : 3, 0, Math.PI * 2); 
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.isCannon ? 5 : 3, 0, Math.PI * 2);
             ctx.fill();
         }
     }
 }
+const Sounds = {
+    // Contexto de audio compartido (Singleton) para evitar saturar el hardware
+    _ctx: null,
+    
+    getContext: function() {
+        if (!this._ctx) {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (AudioContext) {
+                this._ctx = new AudioContext();
+            }
+        }
+        // Intentar reanudar el contexto si está suspendido (requisito de navegadores modernos)
+        if (this._ctx && this._ctx.state === 'suspended') {
+            this._ctx.resume().catch(() => {});
+        }
+        return this._ctx;
+    },
 
-// ELIMINADO: Variable global para torre seleccionada ya que no se usa para mostrar rango
+    shootArrow: () => {
+        try { 
+            const a = Sounds.getContext();
+            if (!a) return;
+            const o = a.createOscillator(); 
+            o.type = 'sine'; 
+            o.frequency.setValueAtTime(800, a.currentTime); 
+            o.frequency.exponentialRampToValueAtTime(200, a.currentTime + 0.05); 
+            const g = a.createGain(); 
+            g.gain.setValueAtTime(0.18, a.currentTime);
+            // antes era ~0.3-0.4 → ahora 50% menos
+            o.connect(g);
+            g.connect(a.destination); 
+            o.start(); o.stop(a.currentTime + 0.05); 
+        } catch(e) {}
+    },
+    shootCannon: () => {
+        try { 
+            const a = Sounds.getContext();
+            if (!a) return;
+            const o = a.createOscillator(); 
+            o.type = 'sawtooth'; 
+            o.frequency.setValueAtTime(80, a.currentTime); 
+            const g = a.createGain(); 
+            g.gain.setValueAtTime(0.35, a.currentTime);
+            // antes 1.0 → ahora mucho más suave
+            g.gain.exponentialRampToValueAtTime(0.01, a.currentTime + 0.2);
+            o.connect(g); g.connect(a.destination); 
+            o.start(); o.stop(a.currentTime + 0.2); 
+        } catch(e) {}
+    },
+    shootMage: () => {
+        try { 
+            const a = Sounds.getContext();
+            if (!a) return;
+            const o = a.createOscillator(); 
+            o.type = 'triangle'; 
+            o.frequency.setValueAtTime(300, a.currentTime); 
+            o.frequency.exponentialRampToValueAtTime(800, a.currentTime + 0.15); 
+            const g = a.createGain(); 
+            g.gain.setValueAtTime(0.25, a.currentTime);
+            // antes 0.6 → ahora -58% volumen
+            g.gain.exponentialRampToValueAtTime(0.01, a.currentTime + 0.15);
+            o.connect(g); g.connect(a.destination); 
+            o.start(); o.stop(a.currentTime + 0.15); 
+        } catch(e) {}
+    },
+    shootIce: () => {
+        try { 
+            const a = Sounds.getContext();
+            if (!a) return;
+            const o = a.createOscillator(); 
+            o.type = 'sine'; 
+            o.frequency.setValueAtTime(600, a.currentTime); 
+            o.frequency.exponentialRampToValueAtTime(300, a.currentTime + 0.1); 
+            const g = a.createGain(); 
+            g.gain.setValueAtTime(0.18, a.currentTime);
+            // antes 0.4 → ahora 55% menos
+            g.gain.exponentialRampToValueAtTime(0.01, a.currentTime + 0.12);
+            o.connect(g); g.connect(a.destination); 
+            o.start(); o.stop(a.currentTime + 0.12); 
+        } catch(e) {}
+    },
+    enemyHit: () => {
+        try { 
+            const a = Sounds.getContext();
+            if (!a) return;
+            const o = a.createOscillator(); 
+            o.type = 'square'; 
+            o.frequency.setValueAtTime(150, a.currentTime); 
+            o.frequency.exponentialRampToValueAtTime(50, a.currentTime + 0.05); 
+            const g = a.createGain(); 
+            g.gain.setValueAtTime(0.15, a.currentTime);
+            // antes 0.3 → 50% menos
+            g.gain.exponentialRampToValueAtTime(0.01, a.currentTime + 0.05);
+            o.connect(g); g.connect(a.destination); 
+            o.start(); o.stop(a.currentTime + 0.05); 
+        } catch(e) {}
+    },
+    towerUpgrade: () => {
+        try { 
+            const a = Sounds.getContext();
+            if (!a) return;
+            const o = a.createOscillator(); 
+            o.type = 'sine'; 
+            o.frequency.setValueAtTime(400, a.currentTime); 
+            o.frequency.exponentialRampToValueAtTime(1200, a.currentTime + 0.1); 
+            const g = a.createGain(); 
+            g.gain.setValueAtTime(0.5, a.currentTime);
+            // este sí lo dejamos fuerte (feedback importante)
+            g.gain.exponentialRampToValueAtTime(0.01, a.currentTime + 0.15);
+            o.connect(g); g.connect(a.destination); 
+            o.start(); o.stop(a.currentTime + 0.15); 
+        } catch(e) {}
+    },
+    waveStart: () => {
+        try { 
+            const a = Sounds.getContext();
+            if (!a) return;
+            const notes = [300, 400, 500]; 
+            notes.forEach((f,i) => { 
+                const o = a.createOscillator(); 
+                o.type = 'triangle'; 
+                o.frequency.value = f; 
+                const g = a.createGain(); 
+                g.gain.setValueAtTime(0.35, a.currentTime + i*0.08);   // antes 0.4 → un poco más suave
+                g.gain.exponentialRampToValueAtTime(0.01, a.currentTime + i*0.08 + 0.2); 
+                o.connect(g); g.connect(a.destination); 
+                o.start(a.currentTime + i*0.08); 
+                o.stop(a.currentTime + i*0.08 + 0.2); 
+            }); 
+        } catch(e) {}
+    }
+};
 
 /*[Fin de sección]*/
