@@ -1,53 +1,68 @@
 // gameLoop.js
 /*sección [GAMELOOP] Bucle principal del juego*/
-function update() {
+function update(dt = 1.0) {
     if (!gameState.active) return;
-    aiDirector.timer++;
+
+    // Timer del director afectado por delta time
+    aiDirector.timer += dt;
     if (aiDirector.timer >= aiDirector.checkInterval) {
         aiDirector.evaluate();
         aiDirector.timer = 0;
     }
+
     if (gameState.spawnQueue.length > 0) {
         if (gameState.spawnTimer <= 0) {
             enemies.push(new Enemy(gameState.spawnQueue.shift()));
             let lastEnemy = enemies[enemies.length-1];
+            // Spawn timer se define en frames, ahora se consumirá con dt
             gameState.spawnTimer = Math.max(20, 60 - (lastEnemy.speed * 10));
-        } else gameState.spawnTimer--;
+        } else gameState.spawnTimer -= dt;
     } else if (enemies.length === 0 && gameState.waveInProgress) {
         gameState.waveInProgress = false;
         gameState.waveTimer = 180;
     }
+
     if (!gameState.waveInProgress) {
+        // Ajuste visual para el texto de la UI
         document.getElementById('wave').innerText = "Sig: " + Math.ceil(gameState.waveTimer/60);
+        
         if (gameState.waveTimer <= 0) {
             gameState.wave++;
             gameState.spawnQueue = generateWave();
             gameState.waveInProgress = true;
             updateUI();
-        } else gameState.waveTimer--;
+        } else gameState.waveTimer -= dt;
     } else {
         document.getElementById('wave').innerText = gameState.wave;
     }
-    enemies.forEach(e => e.update());
-    towers.forEach(t => t.update());
-    projectiles.forEach(p => p.update());
-   
+
+    // Pasar dt a las entidades
+    enemies.forEach(e => e.update(dt));
+    towers.forEach(t => t.update(dt));
+    projectiles.forEach(p => p.update(dt));
+
     for (let i = enemies.length - 1; i >= 0; i--) if (enemies[i].hp <= 0) enemies.splice(i, 1);
     for (let i = projectiles.length - 1; i >= 0; i--) if (projectiles[i].hit) projectiles.splice(i, 1);
+
+    // Texto flotante suavizado con dt
     for (let i = floatText.length - 1; i >= 0; i--) {
-        floatText[i].y -= 0.5;
-        floatText[i].life--;
+        floatText[i].y -= 0.5 * dt;
+        floatText[i].life -= dt;
         if(floatText[i].life <= 0) floatText.splice(i,1);
     }
-    // NUEVO: actualizar partículas (gameState.particles)
+
+    // Partículas suavizadas con dt
     if (gameState.particles && Array.isArray(gameState.particles)) {
         for (let i = gameState.particles.length - 1; i >= 0; i--) {
             let pt = gameState.particles[i];
-            pt.x += pt.vx || 0;
-            pt.y += pt.vy || 0;
-            // aplicar gravedad leve para algunos tipos
-            if (!pt.noGravity) pt.vy += 0.03;
-            pt.life--;
+            
+            pt.x += (pt.vx || 0) * dt;
+            pt.y += (pt.vy || 0) * dt;
+            
+            // aplicar gravedad leve escalada por dt
+            if (!pt.noGravity) pt.vy += 0.03 * dt;
+            
+            pt.life -= dt;
             if (pt.fade) {
                 pt.opacity = (pt.life / 60);
             }
@@ -73,7 +88,7 @@ function draw() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Resaltar casillas donde SÍ se puede construir con un verde ligeramente más claro
-    for (let gx = 0; gx < 16; gx++) {          // 800px / 50px = 16 columnas
+    for (let gx = 0; gx < 24; gx++) {          // 1200px / 50px = 24 columnas (nuevo ancho)
         for (let gy = 0; gy < 10; gy++) {      // 500px / 50px = 10 filas
             let cx = gx * 50 + 25;
             let cy = gy * 50 + 25;
@@ -89,7 +104,7 @@ function draw() {
     ctx.lineWidth = 1;
     
     // Dibujar grid solo en casillas donde se puede construir (patrón tablero de ajedrez)
-    for (let gx = 0; gx < 16; gx++) {          // 800px / 50px = 16 columnas
+    for (let gx = 0; gx < 24; gx++) {          // 1200px / 50px = 24 columnas (nuevo ancho)
         for (let gy = 0; gy < 10; gy++) {      // 500px / 50px = 10 filas
             // Solo dibujar si cumple el patrón de tablero de ajedrez
             if ((gx + gy) % 2 === 0) {

@@ -2,7 +2,7 @@
 /*sección [CONFIGURACIÓN] Ajuste de configuración del juego*/
 // --- MAPA ---
 const maps = [
-    { name: "Serpiente", points: [{x:0,y:100}, {x:150,y:100}, {x:150,y:400}, {x:350,y:400}, {x:350,y:150}, {x:550,y:150}, {x:550,y:350}, {x:700,y:350}, {x:700,y:500}] },
+    { name: "Serpiente", points: [{x:0,y:100}, {x:200,y:100}, {x:200,y:400}, {x:400,y:400}, {x:400,y:150}, {x:600,y:150}, {x:600,y:350}, {x:800,y:350}, {x:800,y:250}, {x:1000,y:250}, {x:1000,y:450}, {x:1200,y:450}] },
     { name: "Herradura", points: [{x:0,y:400}, {x:300,y:400}, {x:300,y:100}, {x:600,y:100}, {x:600,y:400}, {x:800,y:400}] },
     { name: "ZigZag", points: [{x:0,y:50}, {x:100,y:50}, {x:200,y:250}, {x:400,y:250}, {x:500,y:50}, {x:700,y:50}, {x:700,y:450}, {x:800,y:450}] }
 ];
@@ -35,7 +35,7 @@ const enemyRoster = [
     { id: 18, name: "Señor Void", color: "#000000", hp: 7500, speed: 0.18, reward: 300, size: 18, label: "🌑" },
     { id: 19, name: "REY DORADO", color: "#ffd700", hp: 12000, speed: 0.15, reward: 500, size: 30, label: "👑" },
     
-    // --- NUEVOS ENEMIGOS (HASTA LA Z) ---
+        // --- NUEVOS ENEMIGOS (HASTA LA Z) ---
     { id: 20, name: "Bruja",      color: "#9c27b0", hp: 15000, speed: 0.5,  reward: 400, size: 16, label: "🧙‍♀️" },
     { id: 21, name: "Cíclope",    color: "#7e57c2", hp: 18000, speed: 0.21, reward: 600, size: 28, label: "👁️" },
     { id: 22, name: "Yeti",       color: "#e0e0e0", hp: 22000, speed: 0.41, reward: 750, size: 25, label: "❄️" },
@@ -45,13 +45,13 @@ const enemyRoster = [
 ];
 
 const towerTypes = {
-    archer: { cost: 70, range: 140, damage: 15, fireRate: 35, color: '#fdd835', type: 'combat', label: '🏹', projSpeed: 6 },
-    cannon: { cost: 150, range: 110, damage: 60, fireRate: 90, color: '#424242', type: 'combat', label: '💣', projSpeed: 3 },
-    mine: { cost: 100, range: 0, damage: 15, fireRate: 180, color: '#8d6e63', type: 'eco', label: '⛏️' },
+        archer: { cost: 70, range: 140, damage: 15, fireRate: 35, color: '#fdd835', type: 'combat', label: '🏹', projSpeed: 6 },
+        cannon: { cost: 150, range: 110, damage: 60, fireRate: 90, color: '#424242', type: 'combat', label: '💣', projSpeed: 3 },
+        mine: { cost: 100, range: 0, damage: 15, fireRate: 180, color: '#8d6e63', type: 'eco', label: '⛏️' },
     // NUEVAS TORRES AÑADIDAS
-    mage: { cost: 200, range: 160, damage: 25, fireRate: 60, color: '#7b1fa2', type: 'combat', label: '🔮', projSpeed: 8 },
-    sniper: { cost: 180, range: 250, damage: 80, fireRate: 120, color: '#1565c0', type: 'combat', label: '🎯', projSpeed: 12 },
-    ice: { cost: 120, range: 130, damage: 10, fireRate: 45, color: '#00bcd4', type: 'combat', label: '❄️', projSpeed: 5 }
+        mage: { cost: 200, range: 160, damage: 25, fireRate: 60, color: '#7b1fa2', type: 'combat', label: '🔮', projSpeed: 8 },
+        sniper: { cost: 180, range: 250, damage: 80, fireRate: 120, color: '#1565c0', type: 'combat', label: '🎯', projSpeed: 12 },
+        ice: { cost: 120, range: 130, damage: 10, fireRate: 45, color: '#00bcd4', type: 'combat', label: '❄️', projSpeed: 5 }
 };
 
 // (En un comentario) [FUNCIÓN MODIFICADA] getEnemyColorByTier (config.js)

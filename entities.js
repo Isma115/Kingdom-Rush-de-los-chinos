@@ -36,86 +36,76 @@ function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
 
 class Enemy {
     constructor(rosterId) {
-        // VERIFICAR que el rosterId existe antes de acceder a sus propiedades
         const stats = enemyRoster[rosterId];
         if (!stats) {
-            console.error(`Enemy with rosterId ${rosterId} not found in enemyRoster`);
-            // Usar un enemigo por defecto (primer enemigo) para evitar el crash
             const defaultStats = enemyRoster[0];
             this.x = path[0].x;
             this.y = path[0].y;
             this.wpIndex = 0;
-
             let mult = aiDirector.difficultyMultiplier;
-
             this.hp = defaultStats.hp * mult;
             this.maxHp = this.hp;
             this.speed = defaultStats.speed * 0.82 * (1 + (mult - 1) * 0.1);
             this.reward = Math.floor(defaultStats.reward * mult);
             this.radius = defaultStats.size;
-            // Modificado: Usar el color basado en el nivel
             this.color = getEnemyColorByTier(0);
             this.label = defaultStats.label || defaultStats.name.substring(0, 1);
-            this.rosterId = 0; // Guardar el ID
+            this.rosterId = 0;
             return;
-            // Salir temprano para evitar ejecutar el resto del código
         }
 
         this.x = path[0].x;
         this.y = path[0].y;
         this.wpIndex = 0;
-
         let mult = aiDirector.difficultyMultiplier;
-
         this.hp = stats.hp * mult;
         this.maxHp = this.hp;
         this.speed = stats.speed * 0.82 * (1 + (mult - 1) * 0.1);
         this.reward = Math.floor(stats.reward * mult);
         this.radius = stats.size;
-        // Modificado: Usar el color basado en el nivel
         this.color = getEnemyColorByTier(rosterId);
-        this.label = stats.label || stats.name.substring(0, 1); // Añadir label/icono
-        this.rosterId = rosterId; // Guardar el ID
-        // NUEVO: Efectos de estado
+        this.label = stats.label || stats.name.substring(0, 1);
+        this.rosterId = rosterId;
         this.slowed = false;
         this.slowTimer = 0;
-
-        // NUEVO: Visual FX state
-        this.hitFlash = 0;      // frames to show hit flash
-        this.trailAcc = 0;      // accumulator for trail spawning
-        this.auraPulse = Math.random() * 100; // phase offset for aura pulso
+        this.hitFlash = 0;
+        this.trailAcc = 0;
+        this.auraPulse = Math.random() * 100;
     }
 
-    update() {
-        // Aplicar efectos de estado
+    update(dt = 1.0) {
+        // Protección contra NaN
+        if (!isFinite(dt)) dt = 1.0;
+
         if (this.slowed) {
-            this.slowTimer--;
-            if (this.slowTimer <= 0) {
-                this.slowed = false;
-            }
+            this.slowTimer -= dt;
+            if (this.slowTimer <= 0) this.slowed = false;
         }
 
         let effectiveSpeed = this.slowed ? this.speed * 0.5 : this.speed;
 
         let target = path[this.wpIndex + 1];
         if (!target) return;
+
         let dx = target.x - this.x;
         let dy = target.y - this.y;
         let dist = Math.hypot(dx, dy);
-        if (dist < effectiveSpeed) {
+        
+        if (dist < effectiveSpeed * dt) {
             this.wpIndex++;
             if (this.wpIndex >= path.length - 1) this.reachBase();
         } else {
-            this.x += (dx / dist) * effectiveSpeed;
-            this.y += (dy / dist) * effectiveSpeed;
+            // FIX: Evitar división por cero
+            if (dist > 0.01) {
+                this.x += (dx / dist) * effectiveSpeed * dt;
+                this.y += (dy / dist) * effectiveSpeed * dt;
+            }
         }
 
-        // NUEVO: actualizar visual FX
-        if (this.hitFlash > 0) this.hitFlash--;
-        this.trailAcc += Math.min(1, effectiveSpeed / 6);
+        if (this.hitFlash > 0) this.hitFlash -= dt;
+        this.trailAcc += Math.min(1, effectiveSpeed / 6) * dt;
         if (this.trailAcc >= 1) {
             this.trailAcc = 0;
-            // Añadir partícula de estela (usa gameState.particles)
             if (gameState && Array.isArray(gameState.particles)) {
                 gameState.particles.push({
                     x: this.x + (Math.random() - 0.5) * 4,
@@ -132,12 +122,13 @@ class Enemy {
     }
 
     draw() {
-        // AURA PULSANTE (según una fase y vida restante)
+        // Protección visual: Si las coordenadas están corruptas (NaN), no dibujar para evitar crash
+        if (!isFinite(this.x) || !isFinite(this.y)) return;
+
         const pulse = 1 + Math.sin((Date.now() * 0.004) + this.auraPulse) * 0.08;
-        const auraRadius = this.radius + 6 * pulse;
-        // Gradiente radial para aura
+        const auraRadius = Math.max(0, this.radius + 6 * pulse); // Asegurar radio positivo
+        
         let g = ctx.createRadialGradient(this.x, this.y, this.radius * 0.4, this.x, this.y, auraRadius);
-        // Usar color translúcido derivado del color base
         let base = this.color || '#ffffff';
         g.addColorStop(0, hexToRgba(base, 0.18));
         g.addColorStop(1, hexToRgba(base, 0.0));
@@ -145,14 +136,12 @@ class Enemy {
         ctx.beginPath();
         ctx.arc(this.x, this.y, auraRadius, 0, Math.PI * 2);
         ctx.fill();
-        // Base - Círculo Negro Exterior (Sombra o Borde)
+
         ctx.fillStyle = '#212121';
         ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius + 3, 0, Math.PI * 2); // Un poco más grande
+        ctx.arc(this.x, this.y, this.radius + 3, 0, Math.PI * 2);
         ctx.fill();
 
-        // Cuerpo - Círculo (El color cambia de blanco a negro según la dificultad)
-        // Si está golpeado, mostrar un flash blanco momentáneo
         if (this.hitFlash > 0) {
             ctx.fillStyle = '#ffffff';
         } else {
@@ -162,37 +151,27 @@ class Enemy {
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         ctx.fill();
 
-        // Icono
-        // El color del texto del icono es el INVERSO del color de fondo del círculo para asegurar el contraste.
-        let val = parseInt(this.color.substring(1, 3), 16); // Valor RGB del color (0 a 255)
+        let val = parseInt(this.color.substring(1, 3), 16);
         ctx.fillStyle = val > 127 ? 'black' : 'white';
         ctx.font = `${this.radius + 8}px Arial`; ctx.textAlign = 'center';
         ctx.fillText(this.label, this.x, this.y + 8);
 
-        // Barra de vida con degradado y suavizado
         const barWidth = this.radius * 2.5;
         const barHeight = 5;
         const barX = this.x - barWidth / 2;
         const barY = this.y - this.radius - 10;
-
-        // Fondo oscuro translúcido
+        
         ctx.fillStyle = 'rgba(0,0,0,0.35)';
         roundRect(ctx, barX - 1, barY - 1, barWidth + 2, barHeight + 2, 3, true, false);
-        // Fondo rojo (vida perdida)
         ctx.fillStyle = '#b71c1c';
         roundRect(ctx, barX, barY, barWidth, barHeight, 3, true, false);
-
-        // Barra de salud SOLO VERDE (se elimina el degradado verde → amarillo)
         const healthPercent = Math.max(0, this.hp / this.maxHp);
-        ctx.fillStyle = '#4caf50'; // Verde sólido
+        ctx.fillStyle = '#4caf50';
         roundRect(ctx, barX, barY, barWidth * healthPercent, barHeight, 3, true, false);
-
-        // Borde de la barra
         ctx.strokeStyle = '#212121';
         ctx.lineWidth = 1;
         ctx.strokeRect(barX, barY, barWidth, barHeight);
 
-        // NUEVO: Indicador de efecto de hielo
         if (this.slowed) {
             ctx.strokeStyle = '#00bcd4';
             ctx.lineWidth = 2;
@@ -200,9 +179,8 @@ class Enemy {
             ctx.arc(this.x, this.y, this.radius + 5, 0, Math.PI * 2);
             ctx.stroke();
         }
-        // Pequeño destello si fue golpeado recientemente
         if (this.hitFlash > 0) {
-            ctx.globalAlpha = this.hitFlash / 8;
+            ctx.globalAlpha = Math.min(1, this.hitFlash / 8);
             ctx.beginPath();
             ctx.arc(this.x, this.y, this.radius + 10, 0, Math.PI * 2);
             ctx.fillStyle = 'rgba(255,255,255,0.12)';
@@ -218,13 +196,11 @@ class Enemy {
         if (gameState.lives <= 0) gameOver();
     }
 
-    // NUEVO: Método para aplicar efectos
     applySlow(duration) {
         this.slowed = true;
         this.slowTimer = Math.max(this.slowTimer, duration);
     }
 
-    // NUEVO: marcar golpe para FX (llamar desde Projectile.impact o killEnemy si corresponde)
     markHit(intensity) {
         this.hitFlash = Math.max(this.hitFlash, Math.min(8, intensity || 4));
     }
@@ -245,16 +221,20 @@ class Tower {
             return;
         }
 
-        this.stats = { ...baseStats }; // Copia superficial
+        this.stats = { ...baseStats };
+        // Copia superficial
         this.baseCost = baseStats.cost;
         // Recordar coste original para calcular mejoras
 
         this.cooldown = this.stats.fireRate;
-        this.type = typeKey; // NUEVO: Guardar el tipo de torre
+        this.type = typeKey;
+        // NUEVO: Guardar el tipo de torre
 
         // NUEVO: Visual state
-        this.recoil = 0;      // para animación al disparar
-        this.charge = 0;      // para mago / sniper carga visual
+        this.recoil = 0;
+        // para animación al disparar
+        this.charge = 0;
+        // para mago / sniper carga visual
     }
 
     upgrade() {
@@ -283,10 +263,12 @@ class Tower {
         }
     }
 
-    update() {
-        if (this.cooldown > 0) this.cooldown--;
-        // Actualizar visuales
-        if (this.recoil > 0) this.recoil = Math.max(0, this.recoil - 0.5);
+    update(dt = 1.0) {
+        if (this.cooldown > 0) this.cooldown -= dt;
+        
+        // Actualizar visuales con dt
+        if (this.recoil > 0) this.recoil = Math.max(0, this.recoil - 0.5 * dt);
+        
         if (this.stats.type === 'eco') {
             if (this.cooldown <= 0) {
                 gameState.gold += this.stats.damage;
@@ -297,10 +279,11 @@ class Tower {
                 this.recoil = 4;
             }
         } else {
-            // Visual: carga para mago/sniper
+            // Visual: carga para mago/sniper con dt
             if (this.type === 'mage' || this.type === 'sniper') {
-                this.charge = Math.max(0, this.charge - 0.5);
+                this.charge = Math.max(0, this.charge - 0.5 * dt);
             }
+            
             if (this.cooldown <= 0) {
                 let target = this.findTarget();
                 if (target) {
@@ -338,7 +321,6 @@ class Tower {
         // Sombra/relieve
         ctx.fillStyle = '#212121';
         ctx.fillRect(-12, -12, 24, 24);
-
         // Recoil translación: empujar el sprite ligeramente al disparar
         let recoilOffset = -this.recoil * 0.6;
         ctx.translate(0, recoilOffset);
@@ -352,7 +334,8 @@ class Tower {
             gg.addColorStop(0, hexToRgba(this.stats.color, 0.25));
             gg.addColorStop(1, hexToRgba(this.stats.color, 0));
             ctx.fillStyle = gg;
-            ctx.beginPath(); ctx.arc(0, 0, gRadius, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath();
+            ctx.arc(0, 0, gRadius, 0, Math.PI * 2); ctx.fill();
         }
 
         ctx.fillStyle = this.stats.color;
@@ -360,14 +343,14 @@ class Tower {
 
         // Icono
         ctx.fillStyle = 'white';
-        ctx.font = '20px Arial'; ctx.textAlign = 'center';
+        ctx.font = '20px Arial';
+        ctx.textAlign = 'center';
         ctx.fillText(this.stats.label, 0, 8);
         // INDICADOR DE NIVEL (Estrellas)
         ctx.fillStyle = "#ffff00";
         ctx.font = "10px Arial";
         let starsText = this.level > 4 ? `${this.level}⭐` : "⭐".repeat(this.level);
         ctx.fillText(starsText, 0, -20);
-
         // Carga visual para mago/sniper
         if (this.charge > 0) {
             ctx.globalAlpha = Math.min(1, this.charge / 18);
@@ -381,7 +364,6 @@ class Tower {
         }
 
         ctx.restore();
-
         // ELIMINADO: Dibujado del rango cuando la torre está seleccionada
     }
 }
@@ -400,7 +382,7 @@ class Projectile {
         this.isIce = (towerType === 'ice');
         this.isMage = (towerType === 'mage');
     }
-    update() {
+    update(dt = 1.0) {
         if (this.target.hp <= 0 && !this.isCannon && !this.isMage) {
             this.hit = true;
             return;
@@ -408,20 +390,22 @@ class Projectile {
         let dx = this.target.x - this.x;
         let dy = this.target.y - this.y;
         let dist = Math.hypot(dx, dy);
-        if (dist < this.speed) this.impact();
+        
+        // Movimiento y detección de impacto escalado con dt
+        if (dist < this.speed * dt) this.impact();
         else {
-            this.x += (dx / dist) * this.speed;
-            this.y += (dy / dist) * this.speed;
+            this.x += (dx / dist) * this.speed * dt;
+            this.y += (dy / dist) * this.speed * dt;
         }
     }
     impact() {
         this.hit = true;
-
         // SONIDOS DE DISPARO SEGÚN TIPO DE TORRE
         if (this.towerType === 'archer' || this.towerType === 'sniper') {
             Sounds.shootArrow();
         } else if (this.towerType === 'cannon') {
-            Sounds.shootCannon();   // explosión al impactar
+            Sounds.shootCannon();
+            // explosión al impactar
         } else if (this.towerType === 'mage') {
             Sounds.shootMage();
         } else if (this.towerType === 'ice') {
@@ -433,6 +417,7 @@ class Projectile {
                 if (Math.hypot(e.x - this.x, e.y - this.y) < 50) {
                     e.hp -= this.damage;
                     e.markHit(7);
+         
                     Sounds.enemyHit();
                     if (e.hp <= 0) killEnemy(e);
                 }
@@ -447,6 +432,7 @@ class Projectile {
                     e.hp -= this.damage;
                     e.markHit(5);
                     Sounds.enemyHit();
+           
                     hitCount++;
                     if (e.hp <= 0) killEnemy(e);
                 }
@@ -462,7 +448,6 @@ class Projectile {
             Sounds.enemyHit();
             if (this.target.hp <= 0) killEnemy(this.target);
             addFloatText('SLOW', this.target.x, this.target.y, '#00bcd4', 14);
-
         } else {
             // Disparo normal (arquero, francotirador, etc.)
             this.target.hp -= this.damage;
@@ -491,7 +476,8 @@ class Projectile {
             ctx.arc(this.x, this.y, 8, 0, Math.PI * 2);
             ctx.stroke();
         } else {
-            ctx.fillStyle = this.isCannon ? 'black' : 'white';
+            ctx.fillStyle = this.isCannon ?
+                'black' : 'white';
             ctx.beginPath();
             ctx.arc(this.x, this.y, this.isCannon ? 5 : 3, 0, Math.PI * 2);
             ctx.fill();
