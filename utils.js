@@ -1,21 +1,24 @@
 /*sección [UTILS] Utiles para el código*/
 function canBuild(x, y) {
     // IMPORTANTE: solo permitir centros exactos del grid 50×50
-    // (x e y ya vienen "snapeados" desde el input)
-    // Se ha movido aquí para ser la primera comprobación y
-    // asegurar que x e y son centros de grid antes de las demás comprobaciones.
     if (x % 50 !== 25 || y % 50 !== 25) return false;
-    // NUEVO: Reducir a la mitad las casillas construibles
-    // Solo permitir construir en casillas con patrón de tablero de ajedrez
-    const gridX = Math.floor(x / 50);
-    const gridY = Math.floor(y / 50);
-    if ((gridX + gridY) % 2 !== 0) return false;
-    // Fuera de bordes
-    // (Nota: Los bordes originales ya implican los centros [25, 475])
-    if (x < 25 || x > 1875 || y < 25 || y > 475) return false;
-    // 25 = centro del primer cuadrado, 1875 = centro del último (nuevo ancho: 1900px)
 
-    // Colisión con torres existentes (radio 35 como antes)
+    // NUEVO: Ahora hay dos filas de torres posibles
+    // Fila superior: Y = 75 → 425 (gridY 1 a 8)
+    // Fila inferior (nueva): Y = 525 → 875 (gridY 10 a 17)
+    const gridY = Math.floor(y / 50);
+    const isTopRow = gridY >= 1 && gridY <= 8;
+    const isBottomRow = gridY >= 10 && gridY <= 17;
+    if (!isTopRow && !isBottomRow) return false;
+
+    // Patrón de tablero de ajedrez solo en las filas permitidas
+    const gridX = Math.floor(x / 50);
+    if ((gridX + gridY) % 2 !== 0) return false;
+
+    // Fuera de bordes (ancho ampliado a 1900px, alto ahora permite hasta Y ≈ 900)
+    if (x < 25 || x > 1875 || y < 75 || y > 875) return false;
+
+    // Colisión con torres existentes
     for (let t of towers) {
         if (Math.hypot(t.x - x, t.y - y) < 35) return false;
     }

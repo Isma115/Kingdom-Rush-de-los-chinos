@@ -1,38 +1,62 @@
 /*sección [GAMELOOP] Bucle principal del juego*/
 function update(dt = 1.0) {
     if (!gameState.active) return;
-// Timer del director afectado por delta time
+
+    // === DEBUG: God Mode / Oro infinito ===
+    if (gameState.debug.infiniteGold || gameState.debug.godMode) {
+        gameState.gold = 999999;
+    }
+    if (gameState.debug.infiniteLives || gameState.debug.godMode) {
+        gameState.lives = 999;
+    }
+    updateUI();
+
+    // Timer del director
     aiDirector.timer += dt;
     if (aiDirector.timer >= aiDirector.checkInterval) {
         aiDirector.evaluate();
         aiDirector.timer = 0;
     }
 
+    // DEBUG: oleadas instantáneas o salto manual
+    if (gameState.debug.instantWave || gameState.debug.godMode) {
+        gameState.waveTimer = 0;
+    }
+    if (gameState.debug.skipWave) {
+        gameState.debug.skipWave = false;
+        gameState.wave++;
+        gameState.spawnQueue = generateWave();
+        gameState.waveInProgress = true;
+        gameState.waveTimer = 0;
+        updateUI();
+    }
+
     if (gameState.spawnQueue.length > 0) {
         if (gameState.spawnTimer <= 0) {
             enemies.push(new Enemy(gameState.spawnQueue.shift()));
-    let lastEnemy = enemies[enemies.length-1];
-            // Spawn timer se define en frames, ahora se consumirá con dt
+            let lastEnemy = enemies[enemies.length-1];
             gameState.spawnTimer = Math.max(20, 60 - (lastEnemy.speed * 10));
-    } else gameState.spawnTimer -= dt;
+            // DEBUG: oleadas instantáneas → spawn inmediato
+            if (gameState.debug.instantWave || gameState.debug.godMode) {
+                gameState.spawnTimer = 0;
+            }
+        } else gameState.spawnTimer -= dt;
     } else if (enemies.length === 0 && gameState.waveInProgress) {
         gameState.waveInProgress = false;
-    gameState.waveTimer = 180;
+        gameState.waveTimer = 180;
     }
 
     if (!gameState.waveInProgress) {
-        // Ajuste visual para el texto de la UI
         document.getElementById('wave').innerText = "Sig: " + Math.ceil(gameState.waveTimer/60);
-    if (gameState.waveTimer <= 0) {
+        if (gameState.waveTimer <= 0) {
             gameState.wave++;
             gameState.spawnQueue = generateWave();
-    gameState.waveInProgress = true;
+            gameState.waveInProgress = true;
             updateUI();
         } else gameState.waveTimer -= dt;
     } else {
         document.getElementById('wave').innerText = gameState.wave;
     }
-
     // Pasar dt a las entidades
     enemies.forEach(e => e.update(dt));
     towers.forEach(t => t.update(dt));
@@ -67,8 +91,6 @@ function update(dt = 1.0) {
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     // === FONDO CON GRID SUTIL Y CASILLAS CONSTRUIBLES ===
-    // Añadir ligera variación de iluminación y un brillo ambiental dinámico
-    // capa base
     ctx.fillStyle = '#5c9646';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -78,53 +100,53 @@ function draw() {
     bgGrad.addColorStop(1, hexToRgba('#2e7d32', 0.04));
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    // Resaltar casillas donde SÍ se puede construir con un verde ligeramente más claro
-    for (let gx = 0; gx < 38; gx++) {          // 1900px / 50px = 38 columnas (nuevo ancho)
-        for (let gy = 0; gy < 10; gy++) {      // 500px / 50px = 10 filas
+
+    // Resaltar casillas donde SÍ se puede construir (filas 1-8 y 10-17)
+    for (let gx = 0; gx < 38; gx++) {
+        for (let gy = 0; gy < 18; gy++) {
             let cx = gx * 50 + 25;
-    let cy = gy * 50 + 25;
+            let cy = gy * 50 + 25;
             if (canBuild(cx, cy)) {
                 ctx.fillStyle = '#639d4d';
-                // Verde ligeramente más claro, menos contraste
                 ctx.fillRect(gx * 50, gy * 50, 50, 50);
-    }
+            }
         }
     }
 
-    // Grid muy tenue (líneas de 1px, 8% opacidad) - SOLO EN CASILLAS CONSTRUIBLES
+    // Grid muy tenue solo en casillas construibles
     ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
     ctx.lineWidth = 1;
-    
-    // Dibujar grid solo en casillas donde se puede construir (patrón tablero de ajedrez)
-    for (let gx = 0; gx < 38; gx++) {          // 1900px / 50px = 38 columnas (nuevo ancho)
-        for (let gy = 0; gy < 10; gy++) {      // 500px / 50px = 10 filas
-            // Solo dibujar si cumple el patrón de tablero de ajedrez
-  
-            if ((gx + gy) % 2 === 0) {
+    for (let gx = 0; gx < 38; gx++) {
+        for (let gy = 0; gy < 18; gy++) {
+            const gridY = gy;
+            const isTopRow = gridY >= 1 && gridY <= 8;
+            const isBottomRow = gridY >= 10 && gridY <= 17;
+            if (!isTopRow && !isBottomRow) continue;
+
+            if ((gx + gridY) % 2 === 0) {
                 let x = gx * 50;
-    let y = gy * 50;
-                
-                // Líneas verticales (izquierda y derecha de la casilla)
+                let y = gy * 50;
+
                 ctx.beginPath();
-    ctx.moveTo(x, y);
+                ctx.moveTo(x, y);
                 ctx.lineTo(x, y + 50);
                 ctx.stroke();
-                
+
                 ctx.beginPath();
                 ctx.moveTo(x + 50, y);
                 ctx.lineTo(x + 50, y + 50);
                 ctx.stroke();
-    // Líneas horizontales (arriba y abajo de la casilla)
+
                 ctx.beginPath();
-    ctx.moveTo(x, y);
+                ctx.moveTo(x, y);
                 ctx.lineTo(x + 50, y);
                 ctx.stroke();
-                
+
                 ctx.beginPath();
                 ctx.moveTo(x, y + 50);
                 ctx.lineTo(x + 50, y + 50);
                 ctx.stroke();
-    }
+            }
         }
     }
 
@@ -139,18 +161,18 @@ function draw() {
     ctx.lineWidth = 44;
     ctx.beginPath(); ctx.moveTo(path[0].x, path[0].y);
     path.forEach(p => ctx.lineTo(p.x, p.y)); ctx.stroke();
-    // === PARTICULAS (debajo de entidades para profundidad) ===
+
+    // === PARTICULAS (debajo de entidades) ===
     if (gameState.particles && Array.isArray(gameState.particles)) {
         for (let pt of gameState.particles) {
-            ctx.globalAlpha = Math.max(0.03, Math.min(1, pt.opacity !== undefined ? pt.opacity : (pt.life / 60)));
-// mezcla de color simple
+            ctx.globalAlpha = Math.max(0.03, Math.min(1, pt.opacity !== undefined ? pt.opacity : (pt.life / 50)));
             if (pt.color) ctx.fillStyle = pt.color;
-    else ctx.fillStyle = '#ffffff';
+            else ctx.fillStyle = '#ffffff';
             ctx.beginPath();
             ctx.arc(pt.x, pt.y, pt.size || 2, 0, Math.PI * 2);
             ctx.fill();
             ctx.globalAlpha = 1;
-    }
+        }
     }
 
     // === ENTIDADES ===
@@ -163,24 +185,23 @@ function draw() {
         ctx.fillStyle = ft.color;
         ctx.font = (ft.size || 14) + 'px Arial';
         ctx.textAlign = "center";
-        // Efecto de rebote sutil
         let bob = Math.sin((60 - ft.life) * 0.12) * 4;
         ctx.fillText(ft.text, ft.x, ft.y + bob);
     });
-    // === PARTICULAS (encima de todo para ciertos efectos) ===
+
+    // === PARTICULAS ENCIMA (glow) ===
     if (gameState.particles && Array.isArray(gameState.particles)) {
         for (let pt of gameState.particles) {
-            // dibujar de nuevo los pt con brillo si son especiales
             if (pt.glow) {
                 ctx.globalAlpha = Math.max(0.02, Math.min(0.9, (pt.life / 60)));
-    let rg = ctx.createRadialGradient(pt.x, pt.y, 0, pt.x, pt.y, pt.size * 6);
+                let rg = ctx.createRadialGradient(pt.x, pt.y, 0, pt.x, pt.y, pt.size * 6);
                 rg.addColorStop(0, hexToRgba(pt.color || '#fff', 0.45));
-    rg.addColorStop(1, hexToRgba(pt.color || '#fff', 0));
+                rg.addColorStop(1, hexToRgba(pt.color || '#fff', 0));
                 ctx.fillStyle = rg;
                 ctx.beginPath();
                 ctx.arc(pt.x, pt.y, pt.size * 6, 0, Math.PI * 2);
                 ctx.fill();
-    ctx.globalAlpha = 1;
+                ctx.globalAlpha = 1;
             }
         }
     }

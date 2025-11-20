@@ -14,6 +14,15 @@ let gameState = {
     particles: [],
     settings: {
         particleLimit: 400
+    },
+    // === DEBUG CONTROLES (solo desarrollo) ===
+    debug: {
+        infiniteLives: false,
+        infiniteGold: false,
+        instantWave: false,
+        godMode: false,          // vidas infinitas + oro infinito + oleadas instantáneas
+        killAllEnemies: false,   // se activa un frame y mata todo
+        skipWave: false          // salta directamente a la siguiente oleada
     }
 };
 
@@ -21,9 +30,27 @@ function killEnemy(enemy) {
     if(enemy.dead) return;
     enemy.dead = true;
     gameState.gold += enemy.reward;
+
+    // DEBUG: si está activo el modo dios o vidas infinitas, no restamos vidas
+    if (!gameState.debug.godMode && !gameState.debug.infiniteLives) {
+        if (enemy.reachBase && enemy.reachBase === true) {
+            gameState.lives--;
+        }
+    }
+
     aiDirector.recordDeath(enemy);
     updateUI();
-    // Opcional: sonido de muerte (aquí o en enemy.reachBase)
+
+    // DEBUG: matar todos los enemigos en un solo frame
+    if (gameState.debug.killAllEnemies) {
+        gameState.debug.killAllEnemies = false;
+        enemies.forEach(e => {
+            if (!e.dead) {
+                e.hp = 0;
+                killEnemy(e);
+            }
+        });
+    }
 }
 
 function generateWave() {

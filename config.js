@@ -1,3 +1,4 @@
+/*sección [CONFIGURACIÓN] Cónfiguración (config.js)*/
 const maps = [
     { name: "Serpiente", points: [{x:0,y:100}, {x:350,y:100}, {x:350,y:400}, {x:700,y:400}, {x:700,y:150}, {x:1050,y:150}, {x:1050,y:350}, {x:1400,y:350}, {x:1400,y:250}, {x:1650,y:250}, {x:1650,y:450}, {x:1900,y:450}] },
     { name: "Herradura", points: [{x:0,y:400}, {x:550,y:400}, {x:550,y:100}, {x:1100,y:100}, {x:1100,y:400}, {x:1650,y:400}] },
@@ -87,14 +88,22 @@ color: "#7e57c2", hp: 18000, speed: 0.21, reward: 600, size: 28, label: "👁️
 color: "#f44336", hp: 40000, speed: 0.29, reward: 1500, size: 32, label: "🦁🐍🐉" }
 ];
 const towerTypes = {
-        archer: { cost: 70, range: 140, damage: 15, fireRate: 35, color: '#fdd835', type: 'combat', label: '🏹', projSpeed: 6 },
-        cannon: { cost: 150, range: 110, damage: 60, fireRate: 90, color: '#424242', type: 'combat', label: '💣', projSpeed: 3 },
-        mine: { cost: 100, range: 0, damage: 15, fireRate: 180, color: '#8d6e63', type: 'eco', label: '⛏️' },
-    // NUEVAS TORRES AÑADIDAS
-        mage: { cost: 200, range: 160, 
-damage: 25, fireRate: 60, color: '#7b1fa2', type: 'combat', label: '🔮', projSpeed: 8 },
-        sniper: { cost: 180, range: 250, damage: 80, fireRate: 120, color: '#1565c0', type: 'combat', label: '🎯', projSpeed: 12 },
-        ice: { cost: 120, range: 130, damage: 10, fireRate: 45, color: '#00bcd4', type: 'combat', label: '❄️', projSpeed: 5 }
+    archer: { cost: 70, range: 140, damage: 15, fireRate: 35, color: '#fdd835', type: 'combat', label: '🏹', projSpeed: 6 },
+    cannon: { cost: 150, range: 110, damage: 60, fireRate: 90, color: '#424242', type: 'combat', label: '💣', projSpeed: 3 },
+    mine: { cost: 100, range: 0, damage: 15, fireRate: 180, color: '#8d6e63', type: 'eco', label: '⛏️' },
+    mage: { cost: 200, range: 160, damage: 25, fireRate: 60, color: '#7b1fa2', type: 'combat', label: '🔮', projSpeed: 8 },
+    sniper: { cost: 180, range: 250, damage: 80, fireRate: 120, color: '#1565c0', type: 'combat', label: '🎯', projSpeed: 12 },
+    ice: { cost: 120, range: 130, damage: 10, fireRate: 45, color: '#00bcd4', type: 'combat', label: '❄️', projSpeed: 5 },
+    infernal: { 
+        name: 'Infernal', 
+        cost: 500, 
+        range: 220, 
+        damage: 180,      // DPS (daño por segundo)
+        fireRate: 0,      // 0 = disparo continuo (láser)
+        color: '#212121', 
+        type: 'combat', 
+        label: '🔥' 
+    }
 };
 // (En un comentario) [FUNCIÓN MODIFICADA] getEnemyColorByTier (config.js)
 function getEnemyColorByTier(rosterId) {
@@ -135,3 +144,4 @@ function hexToRgba(hex, alpha = 1.0) {
 
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
+/*[Fin de sección]*/
