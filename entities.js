@@ -45,7 +45,7 @@ class Enemy {
             let mult = aiDirector.difficultyMultiplier;
             this.hp = defaultStats.hp * mult;
             this.maxHp = this.hp;
-            this.speed = defaultStats.speed * 0.82 * (1 + (mult - 1) * 0.1);
+            this.speed = defaultStats.speed * 0.82 * (1 + (mult - 1) * 0.1) * 1.55;
             this.reward = Math.floor(defaultStats.reward * mult);
             this.radius = defaultStats.size;
             this.color = getEnemyColorByTier(0);
@@ -60,7 +60,7 @@ class Enemy {
         let mult = aiDirector.difficultyMultiplier;
         this.hp = stats.hp * mult;
         this.maxHp = this.hp;
-        this.speed = stats.speed * 0.82 * (1 + (mult - 1) * 0.1);
+        this.speed = stats.speed * 0.82 * (1 + (mult - 1) * 0.1) * 1.55;
         this.reward = Math.floor(stats.reward * mult);
         this.radius = stats.size;
         this.color = getEnemyColorByTier(rosterId);
@@ -74,7 +74,6 @@ class Enemy {
     }
 
     update(dt = 1.0) {
-        // Protección contra NaN
         if (!isFinite(dt)) dt = 1.0;
 
         if (this.slowed) {
@@ -95,7 +94,6 @@ class Enemy {
             this.wpIndex++;
             if (this.wpIndex >= path.length - 1) this.reachBase();
         } else {
-            // FIX: Evitar división por cero
             if (dist > 0.01) {
                 this.x += (dx / dist) * effectiveSpeed * dt;
                 this.y += (dy / dist) * effectiveSpeed * dt;
@@ -122,11 +120,10 @@ class Enemy {
     }
 
     draw() {
-        // Protección visual: Si las coordenadas están corruptas (NaN), no dibujar para evitar crash
         if (!isFinite(this.x) || !isFinite(this.y)) return;
 
         const pulse = 1 + Math.sin((Date.now() * 0.004) + this.auraPulse) * 0.08;
-        const auraRadius = Math.max(0, this.radius + 6 * pulse); // Asegurar radio positivo
+        const auraRadius = Math.max(0, this.radius + 6 * pulse);
         
         let g = ctx.createRadialGradient(this.x, this.y, this.radius * 0.4, this.x, this.y, auraRadius);
         let base = this.color || '#ffffff';
@@ -189,10 +186,9 @@ class Enemy {
         }
     }
 
-reachBase() {
+    reachBase() {
         this.hp = 0;
 
-        // DEBUG: protección contra pérdida de vidas
         if (!gameState.debug.godMode && !gameState.debug.infiniteLives) {
             gameState.lives--;
         }

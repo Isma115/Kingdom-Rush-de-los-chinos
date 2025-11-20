@@ -98,8 +98,8 @@ const towerTypes = {
         name: 'Infernal', 
         cost: 500, 
         range: 220, 
-        damage: 180,      // DPS (daño por segundo)
-        fireRate: 0,      // 0 = disparo continuo (láser)
+        damage: 180,
+        fireRate: 0,
         color: '#212121', 
         type: 'combat', 
         label: '🔥' 
