@@ -12,28 +12,35 @@ document.getElementById('gameCanvas').addEventListener('click', (e) => {
     const gridX = Math.floor(x / gridSize) * gridSize + 25;  
     const gridY = Math.floor(y / gridSize) * gridSize + 25;
 
-    // CORRECCIÓN: Buscar torre existente con tolerancia de radio aumentada a 35
-    const existingTower = towers.find(t => {
-        const distance = Math.hypot(t.x - x, t.y - y);
-        return distance < 35; // Aumentado de 25 a 35 para facilitar la selección
-    });
+    // Buscar torre existente para mejorar
+    const existingTower = towers.find(t => Math.hypot(t.x - x, t.y - y) < 35);
 
     if (existingTower) {
-        // CORRECCIÓN: Mejorar directamente sin establecer torre seleccionada
-        existingTower.upgrade();
+        // DEBUG: oro infinito permite mejorar gratis
+        if (gameState.debug.infiniteGold || gameState.debug.godMode) {
+            existingTower.level++;
+            existingTower.stats.damage = Math.floor(existingTower.stats.damage * 1.5);
+            existingTower.stats.range = existingTower.stats.range * 1.1;
+            addFloatText("UPGRADE FREE!", existingTower.x, existingTower.y - 30, "#00e5ff", 20);
+            Sounds.towerUpgrade();
+            updateUI();
+        } else {
+            existingTower.upgrade();
+        }
         return;
     }
 
-    // Si el punto exacto del grid no es válido → no construir
-    if (!canBuild(gridX, gridY)) {
-        return;
-    }
+    if (!canBuild(gridX, gridY)) return;
 
     const type = gameState.selectedTower;
     const cost = towerTypes[type].cost;
-    if (gameState.gold >= cost) {
+
+    // DEBUG: oro infinito = infinito → construir gratis
+    if (gameState.debug.infiniteGold || gameState.debug.godMode || gameState.gold >= cost) {
+        if (!(gameState.debug.infiniteGold || gameState.debug.godMode)) {
+            gameState.gold -= cost;
+        }
         towers.push(new Tower(gridX, gridY, type));
-        gameState.gold -= cost;
         updateUI();
     }
 });
