@@ -34,7 +34,7 @@ function update(dt = 1.0) {
     if (gameState.spawnQueue.length > 0) {
         if (gameState.spawnTimer <= 0) {
             enemies.push(new Enemy(gameState.spawnQueue.shift()));
-            let lastEnemy = enemies[enemies.length-1];
+            let lastEnemy = enemies[enemies.length - 1];
             gameState.spawnTimer = Math.max(20, 60 - (lastEnemy.speed * 10));
             // DEBUG: oleadas instantáneas → spawn inmediato
             if (gameState.debug.instantWave || gameState.debug.godMode) {
@@ -47,7 +47,7 @@ function update(dt = 1.0) {
     }
 
     if (!gameState.waveInProgress) {
-        document.getElementById('wave').innerText = "Sig: " + Math.ceil(gameState.waveTimer/60);
+        document.getElementById('wave').innerText = "Sig: " + Math.ceil(gameState.waveTimer / 60);
         if (gameState.waveTimer <= 0) {
             gameState.wave++;
             gameState.spawnQueue = generateWave();
@@ -57,6 +57,10 @@ function update(dt = 1.0) {
     } else {
         document.getElementById('wave').innerText = gameState.wave;
     }
+
+    // === CORRECCIÓN: actualizar cooldowns de habilidades ===
+    updateAbilityCooldowns(dt);   // ← ← ← ESTA ES LA LÍNEA QUE FALTABA
+
     // Pasar dt a las entidades
     enemies.forEach(e => e.update(dt));
     towers.forEach(t => t.update(dt));
@@ -64,27 +68,28 @@ function update(dt = 1.0) {
 
     for (let i = enemies.length - 1; i >= 0; i--) if (enemies[i].hp <= 0) enemies.splice(i, 1);
     for (let i = projectiles.length - 1; i >= 0; i--) if (projectiles[i].hit) projectiles.splice(i, 1);
-// Texto flotante suavizado con dt
+
+    // Texto flotante suavizado con dt
     for (let i = floatText.length - 1; i >= 0; i--) {
         floatText[i].y -= 0.5 * dt;
-    floatText[i].life -= dt;
-        if(floatText[i].life <= 0) floatText.splice(i,1);
+        floatText[i].life -= dt;
+        if (floatText[i].life <= 0) floatText.splice(i, 1);
     }
 
     // Partículas suavizadas con dt
     if (gameState.particles && Array.isArray(gameState.particles)) {
         for (let i = gameState.particles.length - 1; i >= 0; i--) {
             let pt = gameState.particles[i];
-    pt.x += (pt.vx || 0) * dt;
+            pt.x += (pt.vx || 0) * dt;
             pt.y += (pt.vy || 0) * dt;
-// aplicar gravedad leve escalada por dt
+            // aplicar gravedad leve escalada por dt
             if (!pt.noGravity) pt.vy += 0.03 * dt;
-    pt.life -= dt;
+            pt.life -= dt;
             if (pt.fade) {
                 pt.opacity = (pt.life / 60);
-    }
+            }
             if (pt.life <= 0) gameState.particles.splice(i, 1);
-    }
+        }
     }
 }
 
@@ -156,7 +161,7 @@ function draw() {
     ctx.strokeStyle = '#3e2723'; ctx.lineWidth = 52;
     ctx.beginPath(); ctx.moveTo(path[0].x, path[0].y);
     path.forEach(p => ctx.lineTo(p.x, p.y)); ctx.stroke();
-    
+
     ctx.strokeStyle = '#795548';
     ctx.lineWidth = 44;
     ctx.beginPath(); ctx.moveTo(path[0].x, path[0].y);
@@ -179,7 +184,7 @@ function draw() {
     towers.forEach(t => t.draw());
     enemies.forEach(e => e.draw());
     projectiles.forEach(p => p.draw());
-    
+
     // === TEXTO FLOTANTE ===
     floatText.forEach(ft => {
         ctx.fillStyle = ft.color;
@@ -208,5 +213,7 @@ function draw() {
 }
 
 function addFloatText(text, x, y, color, size) {
-    floatText.push({text, x, y, color, life: 60, size: size || 18});
+    floatText.push({ text, x, y, color, life: 60, size: size || 18 });
 }
+
+/* [Fin de sección] */

@@ -10,6 +10,12 @@ const floatText = [];
 let gameState = {
     lives: 25, gold: 250, wave: 1, active: true,
     selectedTower: 'archer', spawnQueue: [], spawnTimer: 0, waveTimer: 0, waveInProgress: true,
+    
+    // NUEVO: Sistema de apuntado de habilidades
+    pendingAbility: null, // String: 'arrowRain', 'freeze', etc.
+    mouseX: 0,
+    mouseY: 0,
+
     // NUEVO: sistema de partículas y ajustes visuales globales
     particles: [],
     settings: {
@@ -65,11 +71,13 @@ function generateWave() {
         if (r > 0.9) selectedId = maxTier;
         else if (r > 0.4) selectedId = Math.max(minTier, maxTier - 1);
         else selectedId = minTier;
+
         if (wave % 5 === 0 && i === count - 1) selectedId = Math.min(19, maxTier + 1);
         queue.push(selectedId);
     }
     queue.sort((a,b) => a - b);
-    Sounds.waveStart(); // ← Sonido al generar nueva oleada
+    Sounds.waveStart();
+    // ← Sonido al generar nueva oleada
     return queue;
 }
 

@@ -1,4 +1,6 @@
 <!--sección [Título_de_fragmento] descripción-->
+Archivo: rush.html
+
 <!DOCTYPE html>
 <html lang="es">
 
@@ -77,17 +79,17 @@
         #controls {
             width: 800px;
             background: #2d1e15;
-            padding: 8px 10px; /* Reducido un poco el padding */
+            padding: 8px 10px;
             box-sizing: border-box;
             display: flex;
             justify-content: center;
-            gap: 5px; /* Reducido el espacio entre botones */
+            gap: 5px;
             border-top: 2px solid #5d4037;
-            flex-wrap: nowrap; /* Asegura que no salten de línea */
+            flex-wrap: nowrap;
         }
 
         .btn {
-            padding: 6px 8px; /* Reducido el padding */
+            padding: 6px 8px;
             cursor: pointer;
             border: 2px solid #6d4c41;
             background: #4e342e;
@@ -98,9 +100,9 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-width: 85px; /* Reducido el ancho mínimo */
-            font-size: 14px; /* Ajustada la fuente principal */
-            line-height: 1.2; /* Ajustada la altura de línea */
+            min-width: 85px;
+            font-size: 14px;
+            line-height: 1.2;
         }
 
         .btn:hover {
@@ -116,20 +118,82 @@
         }
 
         .btn small {
-            font-size: 0.75em; /* Ligeramente más pequeño */
+            font-size: 0.75em;
             color: #a1887f;
             margin-top: 2px;
         }
         
-        /* Estilo para los Emojis dentro de los botones */
         .btn-emoji {
-            margin-bottom: 2px; /* Reducido el margen */
-            font-size: 18px; /* Ligeramente más pequeño */
+            margin-bottom: 2px;
+            font-size: 18px;
             line-height: 1; 
         }
 
+        #abilities-panel {
+            width: 800px;
+            background: #1a237e;
+            padding: 10px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            border-top: 2px solid #3f51b5;
+            flex-wrap: nowrap;
+        }
 
-        /* Panel de debug con botones */
+        .ability-btn {
+            padding: 8px 10px;
+            cursor: pointer;
+            border: 2px solid #3f51b5;
+            background: #283593;
+            color: #e3f2fd;
+            font-weight: bold;
+            border-radius: 6px;
+            transition: 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 90px;
+            font-size: 13px;
+            line-height: 1.2;
+            position: relative;
+        }
+
+        .ability-btn:hover:not(.ability-disabled) {
+            background: #3949ab;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .ability-btn.ability-disabled {
+            background: #37474f;
+            border-color: #546e7a;
+            color: #78909c;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .ability-emoji {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .ability-cooldown {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+            border-radius: 4px;
+        }
+
         #debug-panel {
             width: 800px;
             background: rgba(0, 0, 0, 0.6);
@@ -163,11 +227,9 @@
             box-shadow: 0 0 0 6px #00ff0033;
         }
         
-        /* Estilo específico para el emoji del debug */
         .debug-emoji {
             font-size: 16px;
         }
-
 
         #game-over {
             position: absolute;
@@ -219,13 +281,31 @@
         <button class="btn" onclick="selectTower('infernal')"><span class="btn-emoji">🔥</span>Infernal <small>(500g)</small></button>
     </div>
 
+    <div id="abilities-panel">
+        <button id="ability-arrow-rain" class="ability-btn" onclick="activateAbility('arrowRain')">
+            <span class="ability-emoji">🏹</span>
+            Lluvia de Flechas
+            <small>20s CD</small>
+        </button>
+        <button id="ability-freeze" class="ability-btn" onclick="activateAbility('freeze')">
+            <span class="ability-emoji">❄️</span>
+            Congelación
+            <small>35s CD</small>
+        </button>
+        <button id="ability-fire-bomb" class="ability-btn" onclick="activateAbility('fireBomb')">
+            <span class="ability-emoji">💥</span>
+            Bomba de Fuego
+            <small>30s CD</small>
+        </button>
+    </div>
+
     <div id="debug-panel">
         <button id="debug-lives" class="debug-btn"><span class="debug-emoji">❤️</span>Vidas infinitas</button>
         <button id="debug-gold" class="debug-btn"><span class="debug-emoji">🪙</span>Oro infinito</button>
         <button id="debug-wave" class="debug-btn"><span class="debug-emoji">⚡</span>Oleadas instantáneas</button>
         <button id="debug-god" class="debug-btn"><span class="debug-emoji">✨</span>MODO DIOS</button>
         <button id="debug-kill" class="debug-btn" style="color:#ff1744"><span class="debug-emoji">💀</span>MATAR TODOS</button>
-        <button id="debug-skip" class="debug-btn" style="color:#64b5f6"><span class="debug-emoji">⏭️</span>SALTAR OLEADA</button>
+        <button id="debug-skip" class="debug-btn" style="color:#64b5f6"><span class="debug-emoji">⭐</span>SALTAR OLEADA</button>
     </div>
 
     <script src="config.js"></script>
@@ -235,11 +315,10 @@
     <script src="gameLoop.js"></script>
     <script src="input.js"></script>
     <script src="utils.js"></script>
+    <script src="abilities.js"></script>
     <script src="main.js"></script>
 
     <script>
-        // Nota: El 'this' en el onclick de las funciones de flecha se ha corregido usando event.currentTarget.
-
         document.getElementById('debug-lives').onclick = (event) => {
             gameState.debug.infiniteLives = !gameState.debug.infiniteLives;
             event.currentTarget.classList.toggle('active');
