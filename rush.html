@@ -77,17 +77,17 @@
         #controls {
             width: 800px;
             background: #2d1e15;
-            padding: 10px;
+            padding: 8px 10px; /* Reducido un poco el padding */
             box-sizing: border-box;
             display: flex;
             justify-content: center;
-            gap: 10px;
+            gap: 5px; /* Reducido el espacio entre botones */
             border-top: 2px solid #5d4037;
-            flex-wrap: wrap;
+            flex-wrap: nowrap; /* Asegura que no salten de línea */
         }
 
         .btn {
-            padding: 10px 15px;
+            padding: 6px 8px; /* Reducido el padding */
             cursor: pointer;
             border: 2px solid #6d4c41;
             background: #4e342e;
@@ -98,7 +98,9 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-width: 100px;
+            min-width: 85px; /* Reducido el ancho mínimo */
+            font-size: 14px; /* Ajustada la fuente principal */
+            line-height: 1.2; /* Ajustada la altura de línea */
         }
 
         .btn:hover {
@@ -114,12 +116,20 @@
         }
 
         .btn small {
-            font-size: 0.8em;
+            font-size: 0.75em; /* Ligeramente más pequeño */
             color: #a1887f;
             margin-top: 2px;
         }
+        
+        /* Estilo para los Emojis dentro de los botones */
+        .btn-emoji {
+            margin-bottom: 2px; /* Reducido el margen */
+            font-size: 18px; /* Ligeramente más pequeño */
+            line-height: 1; 
+        }
 
-        /* NUEVO: Panel de debug con botones */
+
+        /* Panel de debug con botones */
         #debug-panel {
             width: 800px;
             background: rgba(0, 0, 0, 0.6);
@@ -142,6 +152,9 @@
             cursor: pointer;
             font-family: monospace;
             font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
         .debug-btn.active {
@@ -149,6 +162,12 @@
             color: #00ff00;
             box-shadow: 0 0 0 6px #00ff0033;
         }
+        
+        /* Estilo específico para el emoji del debug */
+        .debug-emoji {
+            font-size: 16px;
+        }
+
 
         #game-over {
             position: absolute;
@@ -191,23 +210,22 @@
     </div>
 
     <div id="controls">
-        <button class="btn selected" onclick="selectTower('archer')">Arquero (70g)</button>
-        <button class="btn" onclick="selectTower('cannon')">Cañón (150g)</button>
-        <button class="btn" onclick="selectTower('mine')">Mina (100g)</button>
-        <button class="btn" onclick="selectTower('mage')">Mago (200g)</button>
-        <button class="btn" onclick="selectTower('sniper')">Francotirador (180g)</button>
-        <button class="btn" onclick="selectTower('ice')">Hielo (120g)</button>
-        <button class="btn" onclick="selectTower('infernal')">Infernal (500g)</button>
+        <button class="btn selected" onclick="selectTower('archer')"><span class="btn-emoji">🏹</span>Arquero <small>(70g)</small></button>
+        <button class="btn" onclick="selectTower('cannon')"><span class="btn-emoji">💣</span>Cañón <small>(150g)</small></button>
+        <button class="btn" onclick="selectTower('mine')"><span class="btn-emoji">💰</span>Mina <small>(100g)</small></button>
+        <button class="btn" onclick="selectTower('mage')"><span class="btn-emoji">🧙‍♂️</span>Mago <small>(200g)</small></button>
+        <button class="btn" onclick="selectTower('sniper')"><span class="btn-emoji">🎯</span>Francotirador <small>(180g)</small></button>
+        <button class="btn" onclick="selectTower('ice')"><span class="btn-emoji">❄️</span>Hielo <small>(120g)</small></button>
+        <button class="btn" onclick="selectTower('infernal')"><span class="btn-emoji">🔥</span>Infernal <small>(500g)</small></button>
     </div>
 
-    <!-- NUEVO PANEL DE DEBUG CON BOTONES VISUALES -->
     <div id="debug-panel">
-        <button id="debug-lives" class="debug-btn">Vidas infinitas</button>
-        <button id="debug-gold" class="debug-btn">Oro infinito</button>
-        <button id="debug-wave" class="debug-btn">Oleadas instantáneas</button>
-        <button id="debug-god" class="debug-btn">MODO DIOS</button>
-        <button id="debug-kill" class="debug-btn" style="color:#ff1744">MATAR TODOS</button>
-        <button id="debug-skip" class="debug-btn" style="color:#64b5f6">SALTAR OLEADA</button>
+        <button id="debug-lives" class="debug-btn"><span class="debug-emoji">❤️</span>Vidas infinitas</button>
+        <button id="debug-gold" class="debug-btn"><span class="debug-emoji">🪙</span>Oro infinito</button>
+        <button id="debug-wave" class="debug-btn"><span class="debug-emoji">⚡</span>Oleadas instantáneas</button>
+        <button id="debug-god" class="debug-btn"><span class="debug-emoji">✨</span>MODO DIOS</button>
+        <button id="debug-kill" class="debug-btn" style="color:#ff1744"><span class="debug-emoji">💀</span>MATAR TODOS</button>
+        <button id="debug-skip" class="debug-btn" style="color:#64b5f6"><span class="debug-emoji">⏭️</span>SALTAR OLEADA</button>
     </div>
 
     <script src="config.js"></script>
@@ -219,29 +237,30 @@
     <script src="utils.js"></script>
     <script src="main.js"></script>
 
-    <!-- SCRIPT DE LOS BOTONES DEBUG -->
     <script>
-        document.getElementById('debug-lives').onclick = () => {
+        // Nota: El 'this' en el onclick de las funciones de flecha se ha corregido usando event.currentTarget.
+
+        document.getElementById('debug-lives').onclick = (event) => {
             gameState.debug.infiniteLives = !gameState.debug.infiniteLives;
-            this.classList.toggle('active');
-            addFloatText(gameState.debug.infiniteLives ? 'VIDAS INFINITAS ON' : 'VIDAS INFINITAS OFF', canvas.width/2, 50, '#00ff00', 20);
+            event.currentTarget.classList.toggle('active');
+            addFloatText(gameState.debug.infiniteLives ? 'VIDAS INFINITAS ON' : 'VIDAS INFINITAS OFF', canvas.width / 2, 50, '#00ff00', 20);
         };
 
-        document.getElementById('debug-gold').onclick = () => {
+        document.getElementById('debug-gold').onclick = (event) => {
             gameState.debug.infiniteGold = !gameState.debug.infiniteGold;
-            this.classList.toggle('active');
+            event.currentTarget.classList.toggle('active');
             if (gameState.debug.infiniteGold) gameState.gold = 999999;
-            addFloatText(gameState.debug.infiniteGold ? 'ORO INFINITO ON' : 'ORO INFINITO OFF', canvas.width/2, 70, '#ffd700', 20);
+            addFloatText(gameState.debug.infiniteGold ? 'ORO INFINITO ON' : 'ORO INFINITO OFF', canvas.width / 2, 70, '#ffd700', 20);
             updateUI();
         };
 
-        document.getElementById('debug-wave').onclick = () => {
+        document.getElementById('debug-wave').onclick = (event) => {
             gameState.debug.instantWave = !gameState.debug.instantWave;
-            this.classList.toggle('active');
-            addFloatText(gameState.debug.instantWave ? 'OLEADAS INSTANTÁNEAS ON' : 'OLEADAS INSTANTÁNEAS OFF', canvas.width/2, 90, '#ff9800', 20);
+            event.currentTarget.classList.toggle('active');
+            addFloatText(gameState.debug.instantWave ? 'OLEADAS INSTANTÁNEAS ON' : 'OLEADAS INSTANTÁNEAS OFF', canvas.width / 2, 90, '#ff9800', 20);
         };
 
-        document.getElementById('debug-god').onclick = () => {
+        document.getElementById('debug-god').onclick = (event) => {
             const wasOn = gameState.debug.godMode;
             gameState.debug.godMode = !wasOn;
             gameState.debug.infiniteLives = gameState.debug.godMode;
@@ -254,21 +273,23 @@
             document.getElementById('debug-gold').classList.toggle('active', gameState.debug.godMode);
             document.getElementById('debug-wave').classList.toggle('active', gameState.debug.godMode);
 
-            this.classList.toggle('active');
-            addFloatText(gameState.debug.godMode ? 'MODO DIOS ACTIVADO' : 'MODO DIOS DESACTIVADO', canvas.width/2, 110, '#ff1744', 26);
+            event.currentTarget.classList.toggle('active');
+            addFloatText(gameState.debug.godMode ? 'MODO DIOS ACTIVADO' : 'MODO DIOS DESACTIVADO', canvas.width / 2, 110, '#ff1744', 26);
             updateUI();
         };
 
         document.getElementById('debug-kill').onclick = () => {
             gameState.debug.killAllEnemies = true;
-            addFloatText('KILL ALL ENEMIES!', canvas.width/2, 130, '#f44336', 32);
+            addFloatText('KILL ALL ENEMIES!', canvas.width / 2, 130, '#f44336', 32);
         };
 
         document.getElementById('debug-skip').onclick = () => {
             gameState.debug.skipWave = true;
-            addFloatText('SKIP WAVE!', canvas.width/2, 150, '#2196f3', 26);
+            addFloatText('SKIP WAVE!', canvas.width / 2, 150, '#2196f3', 26);
         };
     </script>
 </body>
 
 </html>
+
+<!-- [Fin de sección] -->
