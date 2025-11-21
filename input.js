@@ -20,6 +20,7 @@ document.getElementById('gameCanvas').addEventListener('click', (e) => {
         const abilityKey = gameState.pendingAbility;
         const ability = abilities[abilityKey];
         
+        
         if (ability) {
             // Ejecutar efecto en X, Y
             ability.trigger(x, y);
@@ -27,6 +28,7 @@ document.getElementById('gameCanvas').addEventListener('click', (e) => {
             gameState.pendingAbility = null;
             // Quitar resaltado de botones
             updateAbilitiesUI();
+           
             return; // Detener propagación (no construir torres ni seleccionar nada más)
         }
     }
@@ -36,8 +38,33 @@ document.getElementById('gameCanvas').addEventListener('click', (e) => {
     const gridX = Math.floor(x / gridSize) * gridSize + 25;  
     const gridY = Math.floor(y / gridSize) * gridSize + 25;
 
-    // Buscar torre existente para mejorar
+    // Buscar torre existente para mejorar O eliminar
     const existingTower = towers.find(t => Math.hypot(t.x - x, t.y - y) < 35);
+
+    // === LÓGICA DE LA PALA (ELIMINAR ESTRUCTURA) ===
+    if (gameState.selectedTower === 'shovel') {
+        if (existingTower) {
+            // Calcular reembolso (70% del coste base por nivel)
+            const refund = Math.floor((existingTower.baseCost * existingTower.level) * 0.7);
+            gameState.gold += refund;
+            
+            // Texto flotante de venta
+            addFloatText(`+${refund}g`, existingTower.x, existingTower.y - 20, '#ffd700', 20);
+            addFloatText("SOLD", existingTower.x, existingTower.y - 40, '#ff5252', 16);
+            
+            // Eliminar torre del array
+            const index = towers.indexOf(existingTower);
+            if (index > -1) {
+                towers.splice(index, 1);
+            }
+            
+            // Sonido de venta (usamos el de hit como feedback genérico por ahora)
+            if (Sounds && Sounds.enemyHit) Sounds.enemyHit();
+            
+            updateUI();
+        }
+        return; // La pala no construye ni mejora, solo elimina o no hace nada
+    }
 
     if (existingTower) {
         // DEBUG: oro infinito permite mejorar gratis
@@ -57,6 +84,9 @@ document.getElementById('gameCanvas').addEventListener('click', (e) => {
     if (!canBuild(gridX, gridY)) return;
 
     const type = gameState.selectedTower;
+    // Si por error se intenta construir la pala como torre, evitamos el crash
+    if (type === 'shovel') return;
+
     const cost = towerTypes[type].cost;
 
     // DEBUG: oro infinito = infinito → construir gratis

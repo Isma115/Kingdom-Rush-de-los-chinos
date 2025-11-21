@@ -103,6 +103,16 @@ const towerTypes = {
         color: '#212121', 
         type: 'combat', 
         label: '🔥' 
+    },
+    // NUEVO ITEM: Pala para eliminar estructuras
+    shovel: { 
+        cost: 0, 
+        range: 0, 
+        damage: 0, 
+        fireRate: 0, 
+        color: '#5d4037', 
+        type: 'tool', 
+        label: '🛠️' 
     }
 };
 // (En un comentario) [FUNCIÓN MODIFICADA] getEnemyColorByTier (config.js)

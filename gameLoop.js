@@ -1,7 +1,6 @@
 /*sección [GAMELOOP] Bucle principal del juego*/
 function update(dt = 1.0) {
     if (!gameState.active) return;
-
     // === DEBUG: God Mode / Oro infinito ===
     if (gameState.debug.infiniteGold || gameState.debug.godMode) {
         gameState.gold = 999999;
@@ -11,12 +10,14 @@ function update(dt = 1.0) {
     }
     updateUI();
 
-    // Timer del director
+    // Timer del director ELIMINADO: La amenaza ya no sube por tiempo/evaluación
+    /*
     aiDirector.timer += dt;
     if (aiDirector.timer >= aiDirector.checkInterval) {
         aiDirector.evaluate();
         aiDirector.timer = 0;
     }
+    */
 
     // DEBUG: oleadas instantáneas o salto manual
     if (gameState.debug.instantWave || gameState.debug.godMode) {
@@ -25,6 +26,8 @@ function update(dt = 1.0) {
     if (gameState.debug.skipWave) {
         gameState.debug.skipWave = false;
         gameState.wave++;
+        // Aumento de amenaza manual al saltar oleada
+        aiDirector.increaseDifficulty(0.02);
         gameState.spawnQueue = generateWave();
         gameState.waveInProgress = true;
         gameState.waveTimer = 0;
@@ -50,6 +53,8 @@ function update(dt = 1.0) {
         document.getElementById('wave').innerText = "Sig: " + Math.ceil(gameState.waveTimer / 60);
         if (gameState.waveTimer <= 0) {
             gameState.wave++;
+            // NUEVO: Aumentar amenaza un 2% al iniciar nueva ronda
+            aiDirector.increaseDifficulty(0.02);
             gameState.spawnQueue = generateWave();
             gameState.waveInProgress = true;
             updateUI();
@@ -59,7 +64,8 @@ function update(dt = 1.0) {
     }
 
     // === CORRECCIÓN: actualizar cooldowns de habilidades ===
-    updateAbilityCooldowns(dt);   // ← ← ← ESTA ES LA LÍNEA QUE FALTABA
+    updateAbilityCooldowns(dt);
+    // ← ← ← ESTA ES LA LÍNEA QUE FALTABA
 
     // Pasar dt a las entidades
     enemies.forEach(e => e.update(dt));
@@ -68,7 +74,6 @@ function update(dt = 1.0) {
 
     for (let i = enemies.length - 1; i >= 0; i--) if (enemies[i].hp <= 0) enemies.splice(i, 1);
     for (let i = projectiles.length - 1; i >= 0; i--) if (projectiles[i].hit) projectiles.splice(i, 1);
-
     // Texto flotante suavizado con dt
     for (let i = floatText.length - 1; i >= 0; i--) {
         floatText[i].y -= 0.5 * dt;

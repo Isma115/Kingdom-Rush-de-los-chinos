@@ -1,4 +1,3 @@
-<!--sección [Título_de_fragmento] descripción-->
 <!DOCTYPE html>
 <html lang="es">
 
@@ -120,11 +119,11 @@
             color: #a1887f;
             margin-top: 2px;
         }
-        
+
         .btn-emoji {
             margin-bottom: 2px;
             font-size: 18px;
-            line-height: 1; 
+            line-height: 1;
         }
 
         #abilities-panel {
@@ -160,7 +159,7 @@
         .ability-btn:hover:not(.ability-disabled) {
             background: #3949ab;
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
 
         .ability-btn.ability-disabled {
@@ -224,7 +223,7 @@
             color: #00ff00;
             box-shadow: 0 0 0 6px #00ff0033;
         }
-        
+
         .debug-emoji {
             font-size: 16px;
         }
@@ -247,7 +246,7 @@
 
 <body>
 
-    
+
     <div id="ui-bar">
         <div class="stats-group">
             <div class="stat">Vidas: <span id="lives">25</span></div>
@@ -268,13 +267,22 @@
     </div>
 
     <div id="controls">
-        <button class="btn selected" onclick="selectTower('archer')"><span class="btn-emoji">🏹</span>Arquero <small>(70g)</small></button>
-        <button class="btn" onclick="selectTower('cannon')"><span class="btn-emoji">💣</span>Cañón <small>(150g)</small></button>
-        <button class="btn" onclick="selectTower('mine')"><span class="btn-emoji">💰</span>Mina <small>(100g)</small></button>
-        <button class="btn" onclick="selectTower('mage')"><span class="btn-emoji">🧙‍♂️</span>Mago <small>(200g)</small></button>
-        <button class="btn" onclick="selectTower('sniper')"><span class="btn-emoji">🎯</span>Francotirador <small>(180g)</small></button>
-        <button class="btn" onclick="selectTower('ice')"><span class="btn-emoji">❄️</span>Hielo <small>(120g)</small></button>
-        <button class="btn" onclick="selectTower('infernal')"><span class="btn-emoji">🔥</span>Infernal <small>(500g)</small></button>
+        <button class="btn selected" onclick="selectTower('archer')"><span class="btn-emoji">🏹</span>Arquero
+            <small>(70g)</small></button>
+        <button class="btn" onclick="selectTower('cannon')"><span class="btn-emoji">💣</span>Cañón
+            <small>(150g)</small></button>
+        <button class="btn" onclick="selectTower('mine')"><span class="btn-emoji">💰</span>Mina
+            <small>(100g)</small></button>
+        <button class="btn" onclick="selectTower('mage')"><span class="btn-emoji">🧙‍♂️</span>Mago
+            <small>(200g)</small></button>
+        <button class="btn" onclick="selectTower('sniper')"><span class="btn-emoji">🎯</span>Francotirador
+            <small>(180g)</small></button>
+        <button class="btn" onclick="selectTower('ice')"><span class="btn-emoji">❄️</span>Hielo
+            <small>(120g)</small></button>
+        <button class="btn" onclick="selectTower('infernal')"><span class="btn-emoji">🔥</span>Infernal
+            <small>(500g)</small></button>
+        <button class="btn" onclick="selectTower('shovel')"><span class="btn-emoji">🛠️</span>Pala
+            <small>(Vender)</small></button>
     </div>
 
     <div id="abilities-panel">
@@ -295,33 +303,32 @@
         </button>
     </div>
 
-    <!-- <div id="debug-panel">
-        <button id="debug-lives" class="debug-btn"><span class="debug-emoji">❤️</span>Vidas infinitas</button>
-        <button id="debug-gold" class="debug-btn"><span class="debug-emoji">🪙</span>Oro infinito</button>
-        <button id="debug-wave" class="debug-btn"><span class="debug-emoji">⚡</span>Oleadas instantáneas</button>
-        <button id="debug-god" class="debug-btn"><span class="debug-emoji">✨</span>MODO DIOS</button>
-        <button id="debug-kill" class="debug-btn" style="color:#ff1744"><span class="debug-emoji">💀</span>MATAR TODOS</button>
-        <button id="debug-skip" class="debug-btn" style="color:#64b5f6"><span class="debug-emoji">⭐</span>SALTAR OLEADA</button>
-    </div> -->
-
-    <script src="config.js"></script>
-    <script src="aiDirector.js"></script>
-    <script src="entities.js"></script>
-    <script src="gameState.js"></script>
-    <script src="gameLoop.js"></script>
-    <script src="input.js"></script>
-    <script src="utils.js"></script>
-    <script src="abilities.js"></script>
-    <script src="main.js"></script>
-
     <div id="debug-panel" style="display: flex;">
         <button id="debug-lives" class="debug-btn"><span class="debug-emoji">❤️</span>Vidas infinitas</button>
         <button id="debug-gold" class="debug-btn"><span class="debug-emoji">🪙</span>Oro infinito</button>
         <button id="debug-wave" class="debug-btn"><span class="debug-emoji">⚡</span>Oleadas instantáneas</button>
         <button id="debug-god" class="debug-btn"><span class="debug-emoji">✨</span>MODO DIOS</button>
-        <button id="debug-kill" class="debug-btn" style="color:#ff1744"><span class="debug-emoji">💀</span>MATAR TODOS</button>
-        <button id="debug-skip" class="debug-btn" style="color:#64b5f6"><span class="debug-emoji">⭐</span>SALTAR OLEADA</button>
+        <button id="debug-kill" class="debug-btn" style="color:#ff1744"><span class="debug-emoji">💀</span>MATAR
+            TODOS</button>
+        <button id="debug-skip" class="debug-btn" style="color:#64b5f6"><span class="debug-emoji">⭐</span>SALTAR
+            OLEADA</button>
     </div>
+
+    <script src="config.js"></script>
+    <script src="utils.js"></script>
+
+    <script src="Sounds.js"></script>
+    <script src="Enemy.js"></script>
+    <script src="Boss.js"></script>
+    <script src="Tower.js"></script>
+    <script src="Projectile.js"></script>
+
+    <script src="aiDirector.js"></script>
+    <script src="gameState.js"></script>
+    <script src="abilities.js"></script>
+    <script src="input.js"></script>
+    <script src="gameLoop.js"></script>
+    <script src="main.js"></script>
 
     <script>
         document.getElementById('debug-lives').onclick = (event) => {
@@ -375,5 +382,3 @@
 </body>
 
 </html>
-
-<!-- [Fin de sección] -->
