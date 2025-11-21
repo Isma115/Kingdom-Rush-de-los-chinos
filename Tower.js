@@ -6,6 +6,7 @@ class Tower {
         this.level = 1;
 
         let baseStats = towerTypes[typeKey];
+
         if (!baseStats) {
             console.error(`Tower type ${typeKey} not found in towerTypes`);
             return;
@@ -50,8 +51,9 @@ class Tower {
         if (this.type !== 'infernal') {
             if (this.cooldown > 0) this.cooldown -= dt;
             if (this.recoil > 0) this.recoil = Math.max(0, this.recoil - 0.5 * dt);
-            // Modificación: Verificar this.stats.type en lugar de this.type para detectar minas
-            if (this.stats.type === 'eco') {
+
+            // CORRECCIÓN: Verificar this.type en lugar de this.stats.type para detectar minas
+            if (this.type === 'mine') {
                 if (this.cooldown <= 0) {
                     gameState.gold += this.stats.damage;
                     addFloatText(`+${this.stats.damage}g`, this.x, this.y - 30, '#ffd700', 20);
@@ -139,6 +141,7 @@ class Tower {
         ctx.fillRect(-12, -12, 24, 24);
         let recoilOffset = -this.recoil * 0.6;
         ctx.translate(0, recoilOffset);
+
         if (this.type === 'infernal' && this.beamActive) {
             const gRadius = 22 + Math.sin(Date.now() * 0.01) * 5;
             let gg = ctx.createRadialGradient(0, 0, 8, 0, 0, gRadius);
@@ -150,8 +153,7 @@ class Tower {
             ctx.fill();
         }
 
-        ctx.fillStyle = this.type === 'infernal' ?
-            '#212121' : (this.stats.color || '#555');
+        ctx.fillStyle = this.type === 'infernal' ? '#212121' : (this.stats.color || '#555');
         ctx.fillRect(-15, -15, 30, 30);
         
         ctx.fillStyle = 'white';
@@ -161,6 +163,7 @@ class Tower {
         
         let displayLabel = this.stats.label || (this.type === 'infernal' ? '🔥' : '?');
         ctx.fillText(displayLabel, 0, 2);
+
         ctx.fillStyle = "#ffff00";
         ctx.font = "10px Arial";
         ctx.textBaseline = 'alphabetic';
@@ -179,6 +182,7 @@ class Tower {
         }
 
         ctx.restore();
+
         if (this.type === 'infernal' && this.currentTarget && this.laserOpacity > 0) {
             let opacity = this.laserOpacity;
             let tx = this.currentTarget.x;
@@ -190,6 +194,7 @@ class Tower {
             ctx.moveTo(this.x, this.y);
             ctx.lineTo(tx, ty);
             ctx.stroke();
+
             ctx.strokeStyle = `rgba(255, 255, 255, ${opacity * 0.7})`;
             ctx.lineWidth = 2;
             ctx.beginPath();

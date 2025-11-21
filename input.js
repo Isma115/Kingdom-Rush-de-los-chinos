@@ -67,8 +67,12 @@ document.getElementById('gameCanvas').addEventListener('click', (e) => {
     }
 
     if (existingTower) {
-        // DEBUG: oro infinito permite mejorar gratis
+        // DEBUG: oro infinito permite mejorar gratis PERO CON LÍMITE DE NIVEL 10
         if (gameState.debug.infiniteGold || gameState.debug.godMode) {
+            if (existingTower.level >= 10) {
+                addFloatText("MAX LEVEL", existingTower.x, existingTower.y - 30, "#ffeb3b", 16);
+                return;
+            }
             existingTower.level++;
             existingTower.stats.damage = Math.floor(existingTower.stats.damage * 1.5);
             existingTower.stats.range = existingTower.stats.range * 1.1;

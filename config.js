@@ -75,45 +75,30 @@ const enemyRoster = [
     { id: 24, name: "Xilófago",   color: "#795548", hp: 30000, speed: 0.33, reward: 1100, size: 20, label: "🪲" },
     { id: 25, name: "Quimera",    color: "#f44336", hp: 40000, speed: 0.29, reward: 1500, size: 32, label: "🦁🐍🐉" },
     
+    // === NUEVOS ENEMIGOS PARA OLEADAS ALTAS ===
+    { id: 30, name: "Fénix",      color: "#ff6f00", hp: 60000, speed: 0.35, reward: 2000, size: 28, label: "🔥" },
+    { id: 31, name: "Kraken",     color: "#00695c", hp: 80000, speed: 0.22, reward: 2500, size: 34, label: "🐙" },
+    { id: 32, name: "Centinela",  color: "#37474f", hp: 100000, speed: 0.18, reward: 3000, size: 26, label: "🤖" },
+    { id: 33, name: "Leviatán",   color: "#01579b", hp: 150000, speed: 0.15, reward: 4000, size: 38, label: "🌊" },
+    { id: 34, name: "Anciano",    color: "#4a148c", hp: 200000, speed: 0.12, reward: 5000, size: 32, label: "🧙‍♂️" },
+    { id: 35, name: "Celestial",  color: "#ffeb3b", hp: 300000, speed: 0.25, reward: 6000, size: 30, label: "✨" },
+    { id: 36, name: "Abismal",    color: "#000000", hp: 500000, speed: 0.1,  reward: 8000, size: 40, label: "💀" },
+    
     // === NUEVOS JEFES ===
-    { id: 26, name: "JEFE: Coloso de Piedra", color: "#795548", hp: 25000, speed: 0.15, reward: 2000, size: 35, label: "🗿", isBoss: true },
+    { id: 26, name: "JEFE: Coloso de Piedra", color: "#795548", hp: 12500, speed: 0.15, reward: 2000, size: 35, label: "🗿", isBoss: true },
     { id: 27, name: "JEFE: Dragón Ancestral", color: "#d32f2f", hp: 40000, speed: 0.25, reward: 3500, size: 40, label: "🐉", isBoss: true },
     { id: 28, name: "JEFE: Titán del Abismo", color: "#000000", hp: 60000, speed: 0.12, reward: 5000, size: 45, label: "🌑", isBoss: true },
     { id: 29, name: "JEFE: Dios del Caos",    color: "#7b1fa2", hp: 100000, speed: 0.18, reward: 8000, size: 50, label: "💀", isBoss: true }
 ];
-const towerTypes = {
-    // Modificación: fireRate dividido a la mitad para duplicar velocidad de disparo
+const towerTypes = { // Modificación: fireRate dividido a la mitad para duplicar velocidad de disparo
     archer: { cost: 70, range: 140, damage: 15, fireRate: 17.5, color: '#fdd835', type: 'combat', label: '🏹', projSpeed: 6 },
-    cannon: { cost: 150, range: 110, damage: 60, fireRate: 45, color: '#424242', type: 'combat', label: '💣', projSpeed: 3 },
-    
+    cannon: { cost: 150, range: 110, damage: 60, fireRate: 45, color: '#424242', type: 'combat', label: '💣', projSpeed: 8 },
     // Modificación: fireRate a 90 (velocidad x2) pero damage se mantiene en 15 (cantidad normal)
-    mine: { cost: 100, range: 0, damage: 15, fireRate: 90, color: '#8d6e63', type: 'eco', label: '⛏️' },
-    
-    // Modificación: fireRate dividido a la mitad para el resto
-    mage: { cost: 200, range: 160, damage: 25, fireRate: 30, color: '#7b1fa2', type: 'combat', label: '🔮', projSpeed: 8 },
-    sniper: { cost: 180, range: 250, damage: 80, fireRate: 60, color: '#1565c0', type: 'combat', label: '🎯', projSpeed: 12 },
-    ice: { cost: 120, range: 130, damage: 10, fireRate: 22.5, color: '#00bcd4', type: 'combat', label: '❄️', projSpeed: 5 },
-    infernal: { 
-        name: 'Infernal', 
-        cost: 500, 
-        range: 220, 
-        damage: 180,
-        fireRate: 0,
-     
-        color: '#212121', 
-        type: 'combat', 
-        label: '🔥' 
-    },
-    // NUEVO ITEM: Pala para eliminar estructuras
-    shovel: { 
-        cost: 0, 
-        range: 0, 
-        damage: 0, 
-        fireRate: 0, 
-        color: '#5d4037', 
-        type: 'tool', 
-        label: '🛠️' 
-    }
+    mine: { cost: 100, range: 0, damage: 15, fireRate: 90, color: '#8d6e63', type: 'combat', label: '🕳️', projSpeed: 0 },
+    sniper: { cost: 300, range: 350, damage: 120, fireRate: 150, color: '#3f51b5', type: 'combat', label: '🎯', projSpeed: 10, chargeTime: 18 },
+    ice: { cost: 200, range: 100, damage: 5, fireRate: 60, color: '#00bcd4', type: 'support', label: '🧊', projSpeed: 4 },
+    mage: { cost: 400, range: 150, damage: 20, fireRate: 30, color: '#9c27b0', type: 'combat', label: '🔮', projSpeed: 5, chargeTime: 18 },
+    infernal: { cost: 600, range: 120, damage: 25, fireRate: 1, color: '#ff5722', type: 'combat', label: '🔥', projSpeed: 0 } // Proyectil inexistente, usa láser
 };
 // (En un comentario) [FUNCIÓN MODIFICADA] getEnemyColorByTier (config.js)
 function getEnemyColorByTier(rosterId) {
