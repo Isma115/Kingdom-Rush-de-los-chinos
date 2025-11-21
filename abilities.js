@@ -2,10 +2,11 @@
 const abilities = {
     arrowRain: {
         name: 'Lluvia de Flechas',
-        cooldown: 1200,
+        cooldown: 600, // Modificado: 1200 / 2
         currentCooldown: 0,
         range: 150, // Radio de efecto definido
         
+ 
         // 1. Se llama al pulsar el botón de la UI
         select: function() {
             if (this.currentCooldown > 0) return false;
@@ -23,25 +24,29 @@ const abilities = {
                 if (dist <= areaRadius) {
                     e.hp -= 100;
                     e.markHit(8);
+        
                     hitCount++;
                     if (e.hp <= 0) killEnemy(e);
                     
                     for (let i = 0; i < 8; i++) {
+               
                         gameState.particles.push({
                             x: e.x + (Math.random() - 0.5) * 20,
                             y: e.y + (Math.random() - 0.5) * 20,
+                     
                             vx: (Math.random() - 0.5) * 2,
                             vy: (Math.random() - 0.5) * 2,
                             life: 40,
+                          
                             size: 3,
                             color: '#fdd835',
                             glow: true,
                             fade: true
+          
                         });
                     }
                 }
             });
-
             // Efectos visuales en el área seleccionada
             for (let i = 0; i < 50; i++) {
                 const angle = Math.random() * Math.PI * 2;
@@ -50,11 +55,13 @@ const abilities = {
                     x: x + Math.cos(angle) * radius,
                     y: y + Math.sin(angle) * radius,
                     vx: (Math.random() - 0.5) * 3,
+                   
                     vy: -Math.random() * 5,
                     life: 60,
                     size: 2,
                     color: '#fdd835',
                     glow: true,
+            
                     fade: true
                 });
             }
@@ -67,13 +74,14 @@ const abilities = {
     
     freeze: {
         name: 'Congelación de Área', // Renombrado de Global a Área
-        cooldown: 2100,
+        cooldown: 1050, // Modificado: 2100 / 2
         currentCooldown: 0,
         range: 200, // Radio de efecto definido
         freezeDuration: 180,
 
         select: function() {
-            if (this.currentCooldown > 0) return false;
+            if (this.currentCooldown > 
+            0) return false;
             addFloatText('SELECCIONA ÁREA A CONGELAR', canvas.width / 2, 100, '#00bcd4', 20);
             return true;
         },
@@ -87,25 +95,29 @@ const abilities = {
                 const dist = Math.hypot(e.x - x, e.y - y);
                 if (dist <= areaRadius) {
                     e.applySlow(this.freezeDuration);
+           
                     e.markHit(6);
                     frozenCount++;
                     
                     for (let i = 0; i < 10; i++) {
+                      
                         gameState.particles.push({
                             x: e.x + (Math.random() - 0.5) * 30,
                             y: e.y + (Math.random() - 0.5) * 30,
+                            
                             vx: (Math.random() - 0.5) * 1,
                             vy: (Math.random() - 0.5) * 1,
                             life: 50,
                             size: 3,
+    
                             color: '#00bcd4',
                             glow: true,
                             fade: true
+                 
                         });
                     }
                 }
             });
-            
             // Partículas en el área
             for (let i = 0; i < 60; i++) {
                 const angle = Math.random() * Math.PI * 2;
@@ -114,11 +126,13 @@ const abilities = {
                     x: x + Math.cos(angle) * r,
                     y: y + Math.sin(angle) * r,
                     vx: (Math.random() - 0.5) * 2,
+                   
                     vy: (Math.random() - 0.5) * 2,
                     life: 80,
                     size: 4,
                     color: '#00bcd4',
                     glow: true,
+          
                     fade: true
                 });
             }
@@ -131,7 +145,7 @@ const abilities = {
     
     fireBomb: {
         name: 'Bomba de Fuego',
-        cooldown: 1800,
+        cooldown: 900, // Modificado: 1800 / 2
         currentCooldown: 0,
         range: 120, // Radio de explosión
 
@@ -150,11 +164,11 @@ const abilities = {
                 if (dist <= explosionRadius) {
                     e.hp -= 250;
                     e.markHit(10);
+        
                     hitCount++;
                     if (e.hp <= 0) killEnemy(e);
                 }
             });
-
             for (let i = 0; i < 80; i++) {
                 const angle = Math.random() * Math.PI * 2;
                 const speed = Math.random() * 8;
@@ -163,10 +177,12 @@ const abilities = {
                     y: y,
                     vx: Math.cos(angle) * speed,
                     vy: Math.sin(angle) * speed,
+      
                     life: 60,
                     size: 4 + Math.random() * 4,
                     color: Math.random() > 0.5 ? '#ff5722' : '#ff9800',
                     glow: true,
+            
                     fade: true
                 });
             }

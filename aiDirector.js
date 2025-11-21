@@ -2,26 +2,21 @@
 /*sección [IA DIRECTRIZ] IA que controla el flujo del enemigos*/
 // --- AI DIRECTOR ---
 const aiDirector = {
-    timer: 0, checkInterval: 300, difficultyMultiplier: 1.0, deathHistory: [],
+    timer: 0, checkInterval: 300, difficultyMultiplier: 0.5, deathHistory: [],
     recordDeath: function(enemy) {
         this.deathHistory.push(enemy.wpIndex / (path.length - 1));
     },
     evaluate: function() {
-        if (this.deathHistory.length === 0) return;
-        let avg = this.deathHistory.reduce((a, b) => a + b, 0) / this.deathHistory.length;
-       
-        // Lógica ultra-suave y progresiva (reducción fuerte solicitada)
-        if (avg < 0.35) {
-            let diff = 0.35 - avg; // máximo 0.35
+        // Verificamos si hemos avanzado de ronda (gameState.wave ha cambiado)
+        if (gameState.wave > this.lastWave) {
+            // Actualizamos el registro de la última ronda procesada
+            this.lastWave = gameState.wave;
             
-            // Incremento base muy pequeño + boost extremadamente controlado
-            let increaseAmount = 0.02 + (diff * 0.25);
-            
-            // Límite MUY estricto para evitar cualquier pico
-            increaseAmount = Math.min(increaseAmount, 0.09); // máximo +9% por evaluación
-            
-            this.increaseDifficulty(increaseAmount);
+            // Aumentamos la Amenaza un 2% fijo por cada nueva ronda
+            this.difficultyMultiplier += 0.02;
         }
+        
+        // Limpiamos el historial (ya no se usa para la condición, pero mantenemos la limpieza)
         this.deathHistory = [];
     },
     increaseDifficulty: function(amount) {
