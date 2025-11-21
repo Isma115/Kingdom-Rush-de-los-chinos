@@ -314,6 +314,15 @@
     <script src="abilities.js"></script>
     <script src="main.js"></script>
 
+    <div id="debug-panel" style="display: flex;">
+        <button id="debug-lives" class="debug-btn"><span class="debug-emoji">❤️</span>Vidas infinitas</button>
+        <button id="debug-gold" class="debug-btn"><span class="debug-emoji">🪙</span>Oro infinito</button>
+        <button id="debug-wave" class="debug-btn"><span class="debug-emoji">⚡</span>Oleadas instantáneas</button>
+        <button id="debug-god" class="debug-btn"><span class="debug-emoji">✨</span>MODO DIOS</button>
+        <button id="debug-kill" class="debug-btn" style="color:#ff1744"><span class="debug-emoji">💀</span>MATAR TODOS</button>
+        <button id="debug-skip" class="debug-btn" style="color:#64b5f6"><span class="debug-emoji">⭐</span>SALTAR OLEADA</button>
+    </div>
+
     <script>
         document.getElementById('debug-lives').onclick = (event) => {
             gameState.debug.infiniteLives = !gameState.debug.infiniteLives;

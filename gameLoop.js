@@ -216,4 +216,4 @@ function addFloatText(text, x, y, color, size) {
     floatText.push({ text, x, y, color, life: 60, size: size || 18 });
 }
 
-/* [Fin de sección] */
+/*[Fin de sección]*/
