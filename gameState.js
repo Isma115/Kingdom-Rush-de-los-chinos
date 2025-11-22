@@ -5,21 +5,24 @@ const enemies = [];
 const towers = [];
 const projectiles = [];
 const floatText = [];
-
 // --- GAME STATE ---
 let gameState = {
     lives: 25, gold: 250, wave: 1, active: true,
     selectedTower: 'archer', spawnQueue: [], spawnTimer: 0, waveTimer: 0, waveInProgress: true,
-    
+
     // NUEVO: Sistema de apuntado de habilidades
     pendingAbility: null, // String: 'arrowRain', 'freeze', etc.
     mouseX: 0,
     mouseY: 0,
 
+    // NUEVO: Array para los soldados
+    soldiers: [],
+
     // NUEVO: sistema de partículas y ajustes visuales globales
     particles: [],
     settings: {
         particleLimit: 400
+
     },
     // === DEBUG CONTROLES (solo desarrollo) ===
     debug: {
@@ -28,16 +31,21 @@ let gameState = {
         instantWave: false,
         godMode: false,          // vidas infinitas + oro infinito + oleadas instantáneas
         killAllEnemies: false,   // se activa un frame y mata todo
-        skipWave: false          // salta directamente a la siguiente oleada
+        skipWave: false
+        // salta directamente a la siguiente oleada
     }
 };
-
 function killEnemy(enemy) {
-    if(enemy.dead) return;
-    enemy.dead = true;
-    gameState.gold += enemy.reward;
+    if (!enemy) return;
+    if (enemy.dead) return;
 
-    // DEBUG: si está activo el modo dios o vidas infinitas, no restamos vidas
+    enemy.dead = true;
+
+    if (typeof enemy.reward === 'number' && !enemy._rewarded) {
+        gameState.gold += enemy.reward;
+        enemy._rewarded = true;
+    }
+
     if (!gameState.debug.godMode && !gameState.debug.infiniteLives) {
         if (enemy.reachBase && enemy.reachBase === true) {
             gameState.lives--;
@@ -47,16 +55,7 @@ function killEnemy(enemy) {
     aiDirector.recordDeath(enemy);
     updateUI();
 
-    // DEBUG: matar todos los enemigos en un solo frame
-    if (gameState.debug.killAllEnemies) {
-        gameState.debug.killAllEnemies = false;
-        enemies.forEach(e => {
-            if (!e.dead) {
-                e.hp = 0;
-                killEnemy(e);
-            }
-        });
-    }
+    // 🔥 ELIMINADO: ya no gestionamos aquí el matar todos
 }
 
 function generateWave() {
@@ -65,9 +64,9 @@ function generateWave() {
     let baseCount = 5;
     let waveMultiplier = 1.2;
     let count = baseCount + Math.floor(wave * waveMultiplier);
-    let maxTier = Math.min(36, Math.floor(wave * 0.8)); // Aumentado a 36 para incluir nuevos enemigos
+    let maxTier = Math.min(36, Math.floor(wave * 0.8));
+    // Aumentado a 36 para incluir nuevos enemigos
     let minTier = Math.max(0, maxTier - 4);
-    
     // NUEVOS ENEMIGOS PROGRESIVOS POR OLEADAS ALTAS
     if (wave >= 30 && wave < 40) {
         // Oleadas 30-39: Aparece Fénix (id: 30)
@@ -91,7 +90,7 @@ function generateWave() {
         // Oleadas 90+: Aparecen todos incluyendo Abismal
         maxTier = Math.max(maxTier, 36);
     }
-    
+
     // Aumento adicional de enemigos para oleadas más altas
     if (wave > 20) {
         count += Math.floor((wave - 20) * 0.5);
@@ -102,7 +101,7 @@ function generateWave() {
     if (wave > 100) {
         count += Math.floor((wave - 100) * 0.2);
     }
-    
+
     // Cada 10 oleadas, generar un jefe
     if (wave % 10 === 0 && wave > 0) {
         const bossTier = Math.min(29, 26 + Math.floor(wave / 10) - 1);
@@ -110,11 +109,11 @@ function generateWave() {
         count = Math.max(1, count - 1);
         addFloatText(`¡JEFE DE OLEADA ${wave}!`, canvas.width / 2, 100, '#ff0000', 32);
     }
-    
-    for(let i = 0; i < count; i++) {
+
+    for (let i = 0; i < count; i++) {
         let r = Math.random();
         let selectedId = minTier;
-        
+
         // MEJORADA: Distribución más inteligente de enemigos
         if (r > 0.85) {
             // 15% de probabilidad para el enemigo más fuerte disponible
@@ -134,10 +133,10 @@ function generateWave() {
         if (wave % 5 === 0 && i === count - 1) {
             selectedId = Math.min(maxTier, selectedId + 2);
         }
-        
+
         queue.push(selectedId);
     }
-    queue.sort((a,b) => a - b);
+    queue.sort((a, b) => a - b);
     Sounds.waveStart();
     return queue;
 }

@@ -1,4 +1,4 @@
-/* sección [ENEMIGOS] Código para los enemigos del juego */
+/*sección [ENEMIGOS] Código para los enemigos del juego*/
 class Enemy {
     constructor(rosterId) {
         const stats = enemyRoster[rosterId];
@@ -18,6 +18,9 @@ class Enemy {
             this.label = defaultStats.label || defaultStats.name.substring(0, 1);
             this.rosterId = 0;
             this.isBoss = false;
+            // Daño por defecto
+            this.damage = 5;
+            this.attackCooldown = 0;
             return;
         }
 
@@ -27,7 +30,6 @@ class Enemy {
         let mult = aiDirector.difficultyMultiplier;
         
         // Si es un jefe, usar la clase Boss
-        // Modificación: Comprobamos que no seamos ya una instancia de Boss para evitar recursión infinita
         if (stats.isBoss && this.constructor === Enemy) {
             return new Boss(rosterId);
         }
@@ -47,17 +49,43 @@ class Enemy {
         this.trailAcc = 0;
         this.auraPulse = Math.random() * 100;
         this.isBoss = false;
+        
+        // Propiedades de combate contra Soldado
+        this.damage = stats.damage || 5; 
+        this.attackCooldown = 0;
     }
 
     update(dt = 1.0) {
         if (!isFinite(dt)) dt = 1.0;
+        
+        // Lógica de combate contra Soldado
+        if (this.attackCooldown > 0) this.attackCooldown -= dt;
+
+        let engagedSoldier = null;
+        if (gameState.soldiers && gameState.soldiers.length > 0) {
+            for (let s of gameState.soldiers) {
+                if (s.dead) continue;
+                if (Math.hypot(s.x - this.x, s.y - this.y) < 30) {
+                    engagedSoldier = s;
+                    break;
+                }
+            }
+        }
+
+        if (engagedSoldier) {
+            if (this.attackCooldown <= 0) {
+                engagedSoldier.takeDamage(this.damage);
+                this.attackCooldown = 60; 
+            }
+            return;
+        }
+
         if (this.slowed) {
             this.slowTimer -= dt;
             if (this.slowTimer <= 0) this.slowed = false;
         }
 
-        let effectiveSpeed = this.slowed ?
-            this.speed * 0.5 : this.speed;
+        let effectiveSpeed = this.slowed ? this.speed * 0.5 : this.speed;
 
         let target = path[this.wpIndex + 1];
         if (!target) return;
@@ -93,6 +121,16 @@ class Enemy {
             }
         }
     }
+
+    // --- NUEVO MÉTODO AÑADIDO PARA CORREGIR EL ERROR ---
+    takeDamage(amount) {
+        this.hp -= amount;
+        this.markHit(5); // Feedback visual
+        if (this.hp <= 0) {
+            killEnemy(this);
+        }
+    }
+    // ---------------------------------------------------
 
     draw() {
         if (!isFinite(this.x) || !isFinite(this.y)) return;
@@ -178,4 +216,4 @@ class Enemy {
         this.hitFlash = Math.max(this.hitFlash, Math.min(8, intensity || 4));
     }
 }
-/* [Fin de sección] */
+/*[Fin de sección]*/

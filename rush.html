@@ -1,3 +1,4 @@
+<!-- sección [RUSH] HTML Principal -->
 <!DOCTYPE html>
 <html lang="es">
 
@@ -301,8 +302,13 @@
             Bomba de Fuego
             <small>30s CD</small>
         </button>
-    </div>
 
+        <button id="ability-deploy-soldier" class="ability-btn" onclick="activateAbility('deploySoldier')">
+            <span class="ability-emoji">🛡️</span>
+            Soldado
+            <small>15s CD</small>
+        </button>
+    </div>
     <div id="debug-panel" style="display: flex;">
         <button id="debug-lives" class="debug-btn"><span class="debug-emoji">❤️</span>Vidas infinitas</button>
         <button id="debug-gold" class="debug-btn"><span class="debug-emoji">🪙</span>Oro infinito</button>
@@ -320,6 +326,9 @@
     <script src="Sounds.js"></script>
     <script src="Enemy.js"></script>
     <script src="Boss.js"></script>
+
+    <script src="Soldado.js"></script>
+
     <script src="Tower.js"></script>
     <script src="Projectile.js"></script>
 
@@ -370,7 +379,12 @@
         };
 
         document.getElementById('debug-kill').onclick = () => {
-            gameState.debug.killAllEnemies = true;
+            // --- NUEVA FUNCIÓN INSTANTÁNEA ---
+            enemies.forEach(e => {
+                e.hp = 0;
+                killEnemy(e);
+            });
+
             addFloatText('KILL ALL ENEMIES!', canvas.width / 2, 130, '#f44336', 32);
         };
 
@@ -382,3 +396,4 @@
 </body>
 
 </html>
+<!-- [Fin de sección] */ -->

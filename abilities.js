@@ -6,7 +6,6 @@ const abilities = {
         currentCooldown: 0,
         range: 150, // Radio de efecto definido
         
- 
         // 1. Se llama al pulsar el botón de la UI
         select: function() {
             if (this.currentCooldown > 0) return false;
@@ -19,35 +18,42 @@ const abilities = {
             const areaRadius = this.range;
             let hitCount = 0;
 
+            // --- MODIFICACIÓN: Daño escalable ---
+            // Daño base 100 + 15% por oleada
+            const waveMult = Math.max(1, gameState.wave);
+            const damage = Math.floor(100 * (1 + (waveMult - 1) * 0.15));
+            // ------------------------------------
+
             enemies.forEach(e => {
                 const dist = Math.hypot(e.x - x, e.y - y);
                 if (dist <= areaRadius) {
-                    e.hp -= 100;
+                    e.hp -= damage;
+                   
                     e.markHit(8);
-        
                     hitCount++;
                     if (e.hp <= 0) killEnemy(e);
                     
+                    // Efecto de impacto en enemigo
+          
                     for (let i = 0; i < 8; i++) {
-               
                         gameState.particles.push({
                             x: e.x + (Math.random() - 0.5) * 20,
+                      
                             y: e.y + (Math.random() - 0.5) * 20,
-                     
                             vx: (Math.random() - 0.5) * 2,
                             vy: (Math.random() - 0.5) * 2,
+                     
                             life: 40,
-                          
                             size: 3,
                             color: '#fdd835',
                             glow: true,
+     
                             fade: true
-          
                         });
                     }
                 }
             });
-            // Efectos visuales en el área seleccionada
+            // Efectos visuales generales en el área seleccionada
             for (let i = 0; i < 50; i++) {
                 const angle = Math.random() * Math.PI * 2;
                 const radius = Math.random() * areaRadius;
@@ -73,15 +79,15 @@ const abilities = {
     },
     
     freeze: {
-        name: 'Congelación de Área', // Renombrado de Global a Área
+        name: 'Congelación de Área', 
         cooldown: 1050, // Modificado: 2100 / 2
         currentCooldown: 0,
         range: 200, // Radio de efecto definido
-        freezeDuration: 180,
+        baseDuration: 180, // Duración base en frames
 
         select: function() {
-            if (this.currentCooldown > 
-            0) return false;
+          
+            if (this.currentCooldown > 0) return false;
             addFloatText('SELECCIONA ÁREA A CONGELAR', canvas.width / 2, 100, '#00bcd4', 20);
             return true;
         },
@@ -89,31 +95,37 @@ const abilities = {
         trigger: function(x, y) {
             let frozenCount = 0;
             const areaRadius = this.range;
+            
+            // --- MODIFICACIÓN: Duración escalable ---
+            // Duración base + 5 frames por oleada
+            const waveMult = Math.max(1, gameState.wave);
+            const duration = this.baseDuration + (waveMult * 5);
+            // ----------------------------------------
 
             enemies.forEach(e => {
-                // Ahora verifica distancia
                 const dist = Math.hypot(e.x - x, e.y - y);
                 if (dist <= areaRadius) {
-                    e.applySlow(this.freezeDuration);
-           
+                    e.applySlow(duration);
+             
                     e.markHit(6);
                     frozenCount++;
                     
-                    for (let i = 0; i < 10; i++) {
-                      
+                    // Efecto de congelación en enemigo
+                    for (let i = 0; i < 10; 
+                        i++) {
                         gameState.particles.push({
                             x: e.x + (Math.random() - 0.5) * 30,
                             y: e.y + (Math.random() - 0.5) * 30,
-                            
+     
                             vx: (Math.random() - 0.5) * 1,
                             vy: (Math.random() - 0.5) * 1,
                             life: 50,
+          
                             size: 3,
-    
                             color: '#00bcd4',
                             glow: true,
+                       
                             fade: true
-                 
                         });
                     }
                 }
@@ -159,16 +171,23 @@ const abilities = {
             const explosionRadius = this.range;
             let hitCount = 0;
 
+            // --- MODIFICACIÓN: Daño escalable ---
+            // Daño base 250 + 20% por oleada
+            const waveMult = Math.max(1, gameState.wave);
+            const damage = Math.floor(250 * (1 + (waveMult - 1) * 0.20));
+            // ------------------------------------
+
             enemies.forEach(e => {
                 const dist = Math.hypot(e.x - x, e.y - y);
                 if (dist <= explosionRadius) {
-                    e.hp -= 250;
+                    e.hp -= damage;
+                   
                     e.markHit(10);
-        
                     hitCount++;
                     if (e.hp <= 0) killEnemy(e);
                 }
             });
+            // Efecto de explosión
             for (let i = 0; i < 80; i++) {
                 const angle = Math.random() * Math.PI * 2;
                 const speed = Math.random() * 8;
@@ -191,12 +210,51 @@ const abilities = {
             this.currentCooldown = this.cooldown;
             updateAbilitiesUI();
         }
+    },
+
+    // NUEVA HABILIDAD: Desplegar Soldado
+    deploySoldier: {
+        name: 'Desplegar Soldado',
+        cooldown: 1200, // Aumentado para equilibrar (Original: 400)
+        currentCooldown: 0,
+        
+        select: function() {
+            if (this.currentCooldown > 0) return false;
+            addFloatText('UBICAR SOLDADO', canvas.width / 2, 120, '#1565c0', 20);
+            return true;
+        },
+
+        trigger: function(x, y) {
+            // Spawnear el soldado en la posición
+            gameState.soldiers.push(new Soldier(x, y));
+            // Efecto de aparición
+            for (let i = 0; i < 20; i++) {
+                gameState.particles.push({
+                    x: x,
+                    y: y,
+                  
+                    vx: (Math.random() - 0.5) * 3,
+                    vy: (Math.random() - 0.5) * 3,
+                    life: 40,
+                    size: 3,
+                    color: '#90caf9',
+     
+                    glow: true,
+                    fade: true
+                });
+            }
+
+            addFloatText('¡A LA CARGA!', x, y - 40, '#1565c0', 24);
+            this.currentCooldown = this.cooldown;
+            updateAbilitiesUI();
+        }
     }
 };
 
+// --- FUNCIONES GLOBALES DE HABILIDADES ---
+
 function activateAbility(abilityKey) {
     if (!gameState.active) return;
-    
     // Si ya tenemos esta habilidad pendiente, la cancelamos (toggle)
     if (gameState.pendingAbility === abilityKey) {
         gameState.pendingAbility = null;
@@ -205,7 +263,6 @@ function activateAbility(abilityKey) {
 
     const ability = abilities[abilityKey];
     if (!ability) return;
-    
     if (ability.currentCooldown > 0) {
         addFloatText('HABILIDAD EN COOLDOWN', canvas.width / 2, 100, '#ff5252', 18);
         return;
@@ -219,6 +276,7 @@ function activateAbility(abilityKey) {
     }
 }
 
+// Esta es la función que te faltaba o no se encontraba:
 function updateAbilityCooldowns(dt) {
     for (let key in abilities) {
         if (abilities[key].currentCooldown > 0) {
@@ -232,9 +290,10 @@ function updateAbilitiesUI() {
     const abilityButtons = {
         'arrowRain': document.getElementById('ability-arrow-rain'),
         'freeze': document.getElementById('ability-freeze'),
-        'fireBomb': document.getElementById('ability-fire-bomb')
+        'fireBomb': document.getElementById('ability-fire-bomb'),
+        'deploySoldier': document.getElementById('ability-deploy-soldier')
     };
-
+    
     for (let key in abilities) {
         const ability = abilities[key];
         const button = abilityButtons[key];

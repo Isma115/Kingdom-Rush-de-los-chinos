@@ -83,4 +83,4 @@ function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
     if (stroke) ctx.stroke();
 }
 
-/* [Fin de sección] */
+/*[Fin de sección]*/
