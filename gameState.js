@@ -10,6 +10,9 @@ let gameState = {
     lives: 25, gold: 250, wave: 1, active: true,
     selectedTower: 'archer', spawnQueue: [], spawnTimer: 0, waveTimer: 0, waveInProgress: true,
 
+    // NUEVO: Referencia al Héroe único
+    hero: null,
+
     // NUEVO: Sistema de apuntado de habilidades
     pendingAbility: null, // String: 'arrowRain', 'freeze', etc.
     mouseX: 0,
@@ -21,7 +24,8 @@ let gameState = {
     // NUEVO: sistema de partículas y ajustes visuales globales
     particles: [],
     settings: {
-        particleLimit: 400
+   
+     particleLimit: 400
 
     },
     // === DEBUG CONTROLES (solo desarrollo) ===
@@ -31,7 +35,8 @@ let gameState = {
         instantWave: false,
         godMode: false,          // vidas infinitas + oro infinito + oleadas instantáneas
         killAllEnemies: false,   // se activa un frame y mata todo
-        skipWave: false
+  
+       skipWave: false
         // salta directamente a la siguiente oleada
     }
 };
@@ -40,10 +45,9 @@ function killEnemy(enemy) {
     if (enemy.dead) return;
 
     enemy.dead = true;
-
     if (typeof enemy.reward === 'number' && !enemy._rewarded) {
         gameState.gold += enemy.reward;
-        enemy._rewarded = true;
+    enemy._rewarded = true;
     }
 
     if (!gameState.debug.godMode && !gameState.debug.infiniteLives) {
@@ -54,8 +58,7 @@ function killEnemy(enemy) {
 
     aiDirector.recordDeath(enemy);
     updateUI();
-
-    // 🔥 ELIMINADO: ya no gestionamos aquí el matar todos
+// 🔥 ELIMINADO: ya no gestionamos aquí el matar todos
 }
 
 function generateWave() {
@@ -67,7 +70,7 @@ function generateWave() {
     let maxTier = Math.min(36, Math.floor(wave * 0.8));
     // Aumentado a 36 para incluir nuevos enemigos
     let minTier = Math.max(0, maxTier - 4);
-    // NUEVOS ENEMIGOS PROGRESIVOS POR OLEADAS ALTAS
+// NUEVOS ENEMIGOS PROGRESIVOS POR OLEADAS ALTAS
     if (wave >= 30 && wave < 40) {
         // Oleadas 30-39: Aparece Fénix (id: 30)
         maxTier = Math.max(maxTier, 30);
@@ -140,5 +143,4 @@ function generateWave() {
     Sounds.waveStart();
     return queue;
 }
-
 /*[Fin de sección]*/

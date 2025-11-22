@@ -21,6 +21,8 @@ class Enemy {
             // Daño por defecto
             this.damage = 5;
             this.attackCooldown = 0;
+            // Rango de detección del héroe
+            this.heroDetectionRange = 50;
             return;
         }
 
@@ -51,8 +53,11 @@ class Enemy {
         this.isBoss = false;
         
         // Propiedades de combate contra Soldado
-        this.damage = stats.damage || 5; 
+        this.damage = stats.damage || 5;
         this.attackCooldown = 0;
+        
+        // --- NUEVA PROPIEDAD: Rango de detección del héroe ---
+        this.heroDetectionRange = 50;
     }
 
     update(dt = 1.0) {
@@ -61,6 +66,26 @@ class Enemy {
         // Lógica de combate contra Soldado
         if (this.attackCooldown > 0) this.attackCooldown -= dt;
 
+        // --- MODIFICACIÓN: Primero verificar si hay un héroe cerca ---
+        let engagedHero = null;
+        if (gameState.hero && !gameState.hero.dead) {
+            let distToHero = Math.hypot(gameState.hero.x - this.x, gameState.hero.y - this.y);
+            if (distToHero < this.heroDetectionRange) {
+                engagedHero = gameState.hero;
+            }
+        }
+
+        // Si hay un héroe cerca, pelear contra él
+        if (engagedHero) {
+            if (this.attackCooldown <= 0) {
+                engagedHero.takeDamage(this.damage);
+                this.attackCooldown = 60;
+            }
+            // IMPORTANTE: Retornamos aquí para que no siga su camino
+            return;
+        }
+
+        // Si no hay héroe, buscar soldados normales
         let engagedSoldier = null;
         if (gameState.soldiers && gameState.soldiers.length > 0) {
             for (let s of gameState.soldiers) {
