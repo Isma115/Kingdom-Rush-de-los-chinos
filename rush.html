@@ -115,6 +115,12 @@
             color: white;
         }
 
+        /* MODIFICACIÓN: Estilo para ocultar botones bloqueados */
+        .btn.locked {
+            display: none !important;
+            /* El botón desaparece por completo */
+        }
+
         .btn small {
             font-size: 0.75em;
             color: #a1887f;
@@ -255,8 +261,7 @@
         </div>
         <div class="stats-group">
             <div id="diff-meter">Amenaza: 100%</div>
-            <div class="stat">Oleada: <span 
-id="wave">1</span></div>
+            <div class="stat">Oleada: <span id="wave">1</span></div>
         </div>
     </div>
 
@@ -264,8 +269,7 @@ id="wave">1</span></div>
         <canvas id="gameCanvas" width="800" height="500"></canvas>
         <div id="game-over">
             <h2 style="color: #e53935; font-size: 40px; margin: 0;">REINO CAÍDO</h2>
-            <button class="btn" style="margin-top:20px;"
-onclick="location.reload()">Nuevo Intento</button>
+            <button class="btn" style="margin-top:20px;" onclick="location.reload()">Nuevo Intento</button>
         </div>
     </div>
 
@@ -273,24 +277,29 @@ onclick="location.reload()">Nuevo Intento</button>
         <button class="btn" onclick="selectTower('hero_control')"><span class="btn-emoji">👑</span>Héroe
             <small>(Mover)</small></button>
 
-        <button class="btn selected" onclick="selectTower('archer')"><span class="btn-emoji">🏹</span>Arquero
+        <button id="btn-archer" class="btn selected" onclick="selectTower('archer')"><span
+                class="btn-emoji">🏹</span>Arquero
             <small>(70g)</small></button>
-        <button class="btn" onclick="selectTower('cannon')"><span class="btn-emoji">💣</span>Cañón
-            <small>(150g)</small></button>
-        <button class="btn" onclick="selectTower('mine')"><span class="btn-emoji">💰</span>Mina
+        <button id="btn-mine" class="btn" onclick="selectTower('mine')"><span class="btn-emoji">💰</span>Mina
+
             <small>(100g)</small></button>
-        <button class="btn" onclick="selectTower('mage')"><span class="btn-emoji">🧙‍♂️</span>Mago
- 
-           <small>(200g)</small></button>
-        <button class="btn" onclick="selectTower('sniper')"><span class="btn-emoji">🎯</span>Francotirador
-            <small>(180g)</small></button>
-        <button class="btn" onclick="selectTower('ice')"><span class="btn-emoji">❄️</span>Hielo
+
+        <button id="btn-cannon" class="btn" onclick="selectTower('cannon')"><span class="btn-emoji">💣</span>Cañón
+            <small>(150g)</small></button>
+        <button id="btn-ice" class="btn" onclick="selectTower('ice')"><span class="btn-emoji">❄️</span>Hielo
             <small>(120g)</small></button>
-        <button class="btn" onclick="selectTower('infernal')"><span class="btn-emoji">🔥</span>Infernal
+        <button id="btn-sniper" class="btn" onclick="selectTower('sniper')"><span class="btn-emoji">🎯</span>Sniper
+            <small>(180g)</small></button>
+        <button id="btn-mage" class="btn" onclick="selectTower('mage')"><span class="btn-emoji">🧙‍♂️</span>Mago
+
+            <small>(200g)</small></button>
+        <button id="btn-infernal" class="btn" onclick="selectTower('infernal')"><span
+                class="btn-emoji">🔥</span>Infernal
+
             <small>(500g)</small></button>
         <button class="btn" onclick="selectTower('shovel')"><span class="btn-emoji">🛠️</span>Pala
-         
-   <small>(Vender)</small></button>
+
+            <small>(Vender)</small></button>
     </div>
 
     <div id="abilities-panel">
@@ -299,21 +308,23 @@ onclick="location.reload()">Nuevo Intento</button>
             Lluvia de Flechas
             <small>20s CD</small>
         </button>
+
         <button id="ability-freeze" class="ability-btn" onclick="activateAbility('freeze')">
             <span class="ability-emoji">❄️</span>
-     
-       Congelación
+
+            Congelación
             <small>35s CD</small>
         </button>
         <button id="ability-fire-bomb" class="ability-btn" onclick="activateAbility('fireBomb')">
             <span class="ability-emoji">💥</span>
             Bomba de Fuego
+
             <small>30s CD</small>
         </button>
 
         <button id="ability-deploy-soldier" class="ability-btn" onclick="activateAbility('deploySoldier')">
-  
-           <span class="ability-emoji">🛡️</span>
+
+            <span class="ability-emoji">🛡️</span>
             Soldado
             <small>15s CD</small>
         </button>
@@ -322,8 +333,7 @@ onclick="location.reload()">Nuevo Intento</button>
         <button id="debug-lives" class="debug-btn"><span class="debug-emoji">❤️</span>Vidas infinitas</button>
         <button id="debug-gold" class="debug-btn"><span class="debug-emoji">🪙</span>Oro infinito</button>
         <button id="debug-wave" class="debug-btn"><span class="debug-emoji">⚡</span>Oleadas instantáneas</button>
-        <button 
-id="debug-god" class="debug-btn"><span class="debug-emoji">✨</span>MODO DIOS</button>
+        <button id="debug-god" class="debug-btn"><span class="debug-emoji">✨</span>MODO DIOS</button>
         <button id="debug-kill" class="debug-btn" style="color:#ff1744"><span class="debug-emoji">💀</span>MATAR
             TODOS</button>
         <button id="debug-skip" class="debug-btn" style="color:#64b5f6"><span class="debug-emoji">⭐</span>SALTAR
@@ -335,6 +345,7 @@ id="debug-god" class="debug-btn"><span class="debug-emoji">✨</span>MODO DIOS</
 
     <script src="Sounds.js"></script>
     <script src="Enemy.js"></script>
+
     <script src="Boss.js"></script>
 
     <script src="Soldado.js"></script>
@@ -343,8 +354,7 @@ id="debug-god" class="debug-btn"><span class="debug-emoji">✨</span>MODO DIOS</
     <script src="Tower.js"></script>
     <script src="Projectile.js"></script>
 
-    <script 
-src="aiDirector.js"></script>
+    <script src="aiDirector.js"></script>
     <script src="gameState.js"></script>
     <script src="abilities.js"></script>
     <script src="input.js"></script>
@@ -355,13 +365,13 @@ src="aiDirector.js"></script>
         // INICIALIZAR EL HÉROE AL CARGAR
         // Esperamos un momento a que path y clases estén listas
         setTimeout(() => {
+
             if (typeof Hero !== 'undefined' && typeof path !== 'undefined' && path.length > 0) {
                 // Spawneamos el héroe al inicio del camino (o un poco desplazado)
                 gameState.hero = new Hero(path[0].x, path[0].y + 50);
                 addFloatText("¡HÉROE LISTO!", path[0].x, path[0].y, '#FFD700', 24);
             }
         }, 200);
-
         document.getElementById('debug-lives').onclick = (event) => {
             gameState.debug.infiniteLives = !gameState.debug.infiniteLives;
             event.currentTarget.classList.toggle('active');
