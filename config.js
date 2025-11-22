@@ -46,6 +46,54 @@ const maps = [
       ]
    }
 ];
+
+const mapThemes = {
+    grass: {
+        name: 'Pradera',
+        background: '#5c9646',
+        backgroundGradientTop: '#5c9646',
+        backgroundGradientBottom: '#2e7d32',
+        buildableTile: '#639d4d',
+        gridLine: 'rgba(0, 0, 0, 0.08)',
+        pathBorder: '#3e2723',
+        pathFill: '#795548',
+        description: 'Mapa clásico de praderas verdes'
+    },
+    snow: {
+        name: 'Nieve',
+        background: '#e3f2fd',
+        backgroundGradientTop: '#e3f2fd',
+        backgroundGradientBottom: '#90caf9',
+        buildableTile: '#bbdefb',
+        gridLine: 'rgba(100, 150, 200, 0.15)',
+        pathBorder: '#37474f',
+        pathFill: '#78909c',
+        description: 'Paisaje helado cubierto de nieve'
+    },
+    beach: {
+        name: 'Playa',
+        background: '#fff9c4',
+        backgroundGradientTop: '#fff9c4',
+        backgroundGradientBottom: '#fdd835',
+        buildableTile: '#ffecb3',
+        gridLine: 'rgba(255, 193, 7, 0.12)',
+        pathBorder: '#d4a574',
+        pathFill: '#deb887',
+        description: 'Arena dorada junto al mar'
+    },
+    mountain: {
+        name: 'Montaña',
+        background: '#6d4c41',
+        backgroundGradientTop: '#8d6e63',
+        backgroundGradientBottom: '#4e342e',
+        buildableTile: '#795548',
+        gridLine: 'rgba(255, 255, 255, 0.08)',
+        pathBorder: '#3e2723',
+        pathFill: '#5d4037',
+        description: 'Terreno rocoso de montaña'
+    }
+};
+
 const selectedMap = maps[Math.floor(Math.random() * maps.length)];
 const path = selectedMap.points;
 // --- BESTIARIO (Tier System) ---

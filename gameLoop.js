@@ -191,30 +191,36 @@ function update(dt = 1.0) {
 }
 
 function draw() {
+    // Obtener el tema actual
+    const theme = mapThemes[gameState.currentMap] || mapThemes.grass;
+    
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // === FONDO CON GRID SUTIL Y CASILLAS CONSTRUIBLES ===
-    ctx.fillStyle = '#5c9646';
+    
+    // === FONDO CON TEMA ACTUAL ===
+    ctx.fillStyle = theme.background;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
     // Luz ambiental superior (sutil gradiente)
     let bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    bgGrad.addColorStop(0, hexToRgba('#5c9646', 0.04));
-    bgGrad.addColorStop(1, hexToRgba('#2e7d32', 0.04));
+    bgGrad.addColorStop(0, hexToRgba(theme.backgroundGradientTop, 0.04));
+    bgGrad.addColorStop(1, hexToRgba(theme.backgroundGradientBottom, 0.04));
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
     // Resaltar casillas donde SÍ se puede construir (filas 1-8 y 10-17)
     for (let gx = 0; gx < 38; gx++) {
         for (let gy = 0; gy < 18; gy++) {
             let cx = gx * 50 + 25;
             let cy = gy * 50 + 25;
             if (canBuild(cx, cy)) {
-                ctx.fillStyle = '#639d4d';
+                ctx.fillStyle = theme.buildableTile;
                 ctx.fillRect(gx * 50, gy * 50, 50, 50);
             }
         }
     }
 
     // Grid muy tenue solo en casillas construibles
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
+    ctx.strokeStyle = theme.gridLine;
     ctx.lineWidth = 1;
     for (let gx = 0; gx < 38; gx++) {
         for (let gy = 0; gy < 18; gy++) {
@@ -250,18 +256,24 @@ function draw() {
         }
     }
 
-    // === CAMINO ===
+    // === CAMINO CON COLORES DEL TEMA ===
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.strokeStyle = '#3e2723'; ctx.lineWidth = 52;
-    ctx.beginPath(); ctx.moveTo(path[0].x, path[0].y);
-    path.forEach(p => ctx.lineTo(p.x, p.y)); ctx.stroke();
+    ctx.strokeStyle = theme.pathBorder;
+    ctx.lineWidth = 52;
+    ctx.beginPath();
+    ctx.moveTo(path[0].x, path[0].y);
+    path.forEach(p => ctx.lineTo(p.x, p.y));
+    ctx.stroke();
 
-    ctx.strokeStyle = '#795548';
+    ctx.strokeStyle = theme.pathFill;
     ctx.lineWidth = 44;
-    ctx.beginPath(); ctx.moveTo(path[0].x, path[0].y);
-    path.forEach(p => ctx.lineTo(p.x, p.y)); ctx.stroke();
-    // === PARTICULAS (debajo de entidades) ===
+    ctx.beginPath();
+    ctx.moveTo(path[0].x, path[0].y);
+    path.forEach(p => ctx.lineTo(p.x, p.y));
+    ctx.stroke();
+    
+    // === PARTÍCULAS (debajo de entidades) ===
     if (gameState.particles && Array.isArray(gameState.particles)) {
         for (let pt of gameState.particles) {
             ctx.globalAlpha = Math.max(0.03, Math.min(1, pt.opacity !== undefined ? pt.opacity : (pt.life / 50)));
@@ -283,6 +295,7 @@ function draw() {
 
     enemies.forEach(e => e.draw());
     projectiles.forEach(p => p.draw());
+    
     // === TEXTO FLOTANTE ===
     floatText.forEach(ft => {
         ctx.fillStyle = ft.color;
@@ -291,7 +304,8 @@ function draw() {
         let bob = Math.sin((60 - ft.life) * 0.12) * 4;
         ctx.fillText(ft.text, ft.x, ft.y + bob);
     });
-    // === PARTICULAS ENCIMA (glow) ===
+    
+    // === PARTÍCULAS ENCIMA (glow) ===
     if (gameState.particles && Array.isArray(gameState.particles)) {
         for (let pt of gameState.particles) {
             if (pt.glow) {

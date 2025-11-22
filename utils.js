@@ -31,6 +31,50 @@ function canBuild(x, y) {
     return true;
 }
 
+
+function setMapTheme(themeName) {
+    if (!mapThemes[themeName]) {
+        console.error(`Tema de mapa "${themeName}" no existe. Usando 'grass' por defecto.`);
+        themeName = 'grass';
+    }
+    
+    gameState.currentMap = themeName;
+    
+    // Efecto visual de cambio de mapa
+    addFloatText(`¡MAPA CAMBIADO: ${mapThemes[themeName].name}!`, canvas.width / 2, canvas.height / 2, '#ffd700', 32);
+    
+    // Partículas de transición
+    for (let i = 0; i < 100; i++) {
+        gameState.particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            vx: (Math.random() - 0.5) * 4,
+            vy: (Math.random() - 0.5) * 4,
+            life: 60,
+            size: 3 + Math.random() * 4,
+            color: mapThemes[themeName].buildableTile,
+            glow: true,
+            fade: true
+        });
+    }
+    
+    console.log(`Mapa cambiado a: ${mapThemes[themeName].name}`);
+}
+
+function initializeMap(themeName) {
+    if (!themeName) {
+        themeName = 'grass'; // Mapa por defecto
+    }
+    
+    if (!mapThemes[themeName]) {
+        console.warn(`Tema "${themeName}" no encontrado. Usando 'grass'.`);
+        themeName = 'grass';
+    }
+    
+    gameState.currentMap = themeName;
+    console.log(`Mapa inicializado: ${mapThemes[themeName].name}`);
+}
+
 function distToSegment(p, v, w) {
     let l2 = Math.hypot(v.x - w.x, v.y - w.y) ** 2;
     if (l2 == 0) return Math.hypot(p.x - v.x, p.y - v.y);

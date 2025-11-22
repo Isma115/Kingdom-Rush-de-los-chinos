@@ -10,7 +10,7 @@ let gameState = {
     lives: 25, gold: 250, wave: 1, active: true,
     selectedTower: 'archer', spawnQueue: [], spawnTimer: 0, waveTimer: 0, waveInProgress: true,
 
-    // NUEVO: Referencia al Héroe único
+    // NUEVO: Referencia al Héroe Único
     hero: null,
 
     // NUEVO: Temporizador de reaparición del héroe
@@ -27,10 +27,12 @@ let gameState = {
     // NUEVO: sistema de partículas y ajustes visuales globales
     particles: [],
     settings: {
-   
-     particleLimit: 400
-
+        particleLimit: 400
     },
+    
+    // NUEVO: Sistema de mapas temáticos
+    currentMap: 'grass', // Opciones: 'grass', 'snow', 'beach', 'mountain'
+    
     // === DEBUG CONTROLES (solo desarrollo) ===
     debug: {
         infiniteLives: false,
@@ -38,9 +40,7 @@ let gameState = {
         instantWave: false,
         godMode: false,          // vidas infinitas + oro infinito + oleadas instantáneas
         killAllEnemies: false,   // se activa un frame y mata todo
-  
-       skipWave: false
-        // salta directamente a la siguiente oleada
+        skipWave: false          // salta directamente a la siguiente oleada
     }
 };
 function killEnemy(enemy) {
