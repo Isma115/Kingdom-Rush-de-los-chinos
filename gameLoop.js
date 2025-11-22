@@ -1,49 +1,110 @@
 /*sección [GAMELOOP] Bucle principal del juego*/
+/**
+ * GAMELOOP - Bucle principal del juego
+ * * Funcionalidades principales:
+ * - Gestión del ciclo de actualización y renderizado del juego
+ * - Control de estados de debug (God Mode, oro infinito, vidas infinitas)
+ * - Sistema de oleadas de enemigos con temporizador
+ * - Actualización de entidades (enemigos, torres, proyectiles)
+ * - Sistema de partículas y texto flotante
+ * - Gestión de cooldowns de habilidades
+ * - Renderizado del mapa con grid, camino y casillas construibles
+ */
 function update(dt = 1.0) {
     if (!gameState.active) return;
-    // === DEBUG: God Mode / Oro infinito ===
-    if (gameState.debug.infiniteGold || gameState.debug.godMode) {
+    
+    // === GESTIÓN DEL HÉROE Y SU REAPARICIÓN ===
+    if (gameState.hero) {
+        if (gameState.hero.dead && gameState.hero.isRespawning) {
+            // Decrementar temporizador global de reaparición
+            if (gameState.heroRespawnTimer > 0) {
+                gameState.heroRespawnTimer -= dt;
+                
+                // Mostrar temporizador cada segundo
+                if (Math.floor(gameState.heroRespawnTimer / 60) !== Math.floor((gameState.heroRespawnTimer + dt) / 60)) {
+                    let secondsLeft = Math.ceil(gameState.heroRespawnTimer / 60);
+                    if (secondsLeft > 0) {
+                        addFloatText(`Héroe reaparece en ${secondsLeft}s`, canvas.width / 2, 150, '#ffff00', 20);
+                    }
+                }
+                
+                // Cuando el temporizador llega a 0, reaparece el héroe
+                if (gameState.heroRespawnTimer <= 0) {
+                    gameState.hero.respawn();
+                    gameState.heroRespawnTimer = 0;
+                }
+            }
+        } else if (!gameState.hero.dead) {
+            // Actualizar héroe si está vivo
+            gameState.hero.update(dt);
+        }
+    }
+    
+    // === ACTUALIZAR SOLDADOS ===
+    if (gameState.soldiers) {
+        for (let s of gameState.soldiers) {
+            if (!s.dead) s.update(dt);
+        }
+        // Eliminar soldados muertos del array sin reasignarlo
+        for (let i = gameState.soldiers.length - 1; i >= 0; i--) {
+            if (gameState.soldiers[i].dead) {
+                gameState.soldiers.splice(i, 1);
+            }
+        }
+    }
+
+    // === GESTIÓN DE DEBUG ===
+    if (gameState.debug.godMode) {
+        gameState.debug.infiniteLives = true;
+        gameState.debug.infiniteGold = true;
+        gameState.debug.instantWave = true;
+    }
+    if (gameState.debug.infiniteGold) {
         gameState.gold = 999999;
     }
-    if (gameState.debug.infiniteLives || gameState.debug.godMode) {
-        gameState.lives = 999;
-    }
-    updateUI();
 
-    // Timer del director ELIMINADO: La amenaza ya no sube por tiempo/evaluación
-    /*
-    aiDirector.timer += dt;
-    if (aiDirector.timer >= aiDirector.checkInterval) {
-        aiDirector.evaluate();
-        aiDirector.timer = 0;
-    }
-    */
-
-    // DEBUG: oleadas instantáneas o salto manual
-    if (gameState.debug.instantWave || gameState.debug.godMode) {
-        gameState.waveTimer = 0;
+    // === GESTIÓN DE OLEADAS ===
+    if (gameState.debug.killAllEnemies) {
+        for (let e of enemies) {
+            e.hp = 0;
+            killEnemy(e);
+        }
+        gameState.debug.killAllEnemies = false;
     }
     if (gameState.debug.skipWave) {
-        gameState.debug.skipWave = false;
-        gameState.wave++;
-        // Aumento de amenaza manual al saltar oleada
-        aiDirector.increaseDifficulty(0.02);
-        gameState.spawnQueue = generateWave();
-        gameState.waveInProgress = true;
+        for (let e of enemies) {
+            e.hp = 0;
+            killEnemy(e);
+        }
+        gameState.waveInProgress = false;
         gameState.waveTimer = 0;
-        updateUI();
+        gameState.debug.skipWave = false;
     }
 
-    if (gameState.spawnQueue.length > 0) {
-        if (gameState.spawnTimer <= 0) {
-            enemies.push(new Enemy(gameState.spawnQueue.shift()));
-            let lastEnemy = enemies[enemies.length - 1];
-            gameState.spawnTimer = Math.max(20, 60 - (lastEnemy.speed * 10));
-            // DEBUG: oleadas instantáneas → spawn inmediato
-            if (gameState.debug.instantWave || gameState.debug.godMode) {
-                gameState.spawnTimer = 0;
+    // === COOLDOWNS DE HABILIDADES ===
+    for (let key in abilities) {
+        if (abilities[key].currentCooldown > 0) {
+            abilities[key].currentCooldown -= dt;
+            if (abilities[key].currentCooldown < 0) {
+                abilities[key].currentCooldown = 0;
             }
-        } else gameState.spawnTimer -= dt;
+        }
+    }
+    updateAbilitiesUI();
+
+    // === TORRES ===
+    for (let t of towers) {
+        t.update(dt);
+    }
+
+    // === ENEMIGOS ===
+    if (gameState.spawnQueue.length > 0) {
+        gameState.spawnTimer += dt;
+        if (gameState.spawnTimer >= (gameState.debug.instantWave ? 1 : 25)) {
+            gameState.spawnTimer = 0;
+            let rosterId = gameState.spawnQueue.shift();
+            enemies.push(new Enemy(rosterId));
+        }
     } else if (enemies.length === 0 && gameState.waveInProgress) {
         gameState.waveInProgress = false;
         gameState.waveTimer = 180;
@@ -53,78 +114,113 @@ function update(dt = 1.0) {
         document.getElementById('wave').innerText = "Sig: " + Math.ceil(gameState.waveTimer / 60);
         if (gameState.waveTimer <= 0) {
             gameState.wave++;
-            // NUEVO: Aumentar amenaza un 2% al iniciar nueva ronda
             aiDirector.increaseDifficulty(0.02);
             gameState.spawnQueue = generateWave();
             gameState.waveInProgress = true;
             updateUI();
-        } else gameState.waveTimer -= dt;
-    } else {
-        document.getElementById('wave').innerText = gameState.wave;
+        } else {
+            gameState.waveTimer -= dt;
+        }
     }
 
-    // === CORRECCIÓN: actualizar cooldowns de habilidades ===
-    updateAbilityCooldowns(dt);
-    // ← ← ← ESTA ES LA LÍNEA QUE FALTABA
+    for (let e of enemies) {
+        e.update(dt);
+    }
+    
+    // Eliminar enemigos muertos usando splice para mutar el array sin reasignarlo
+    for (let i = enemies.length - 1; i >= 0; i--) {
+        if (enemies[i].hp <= 0) {
+            enemies.splice(i, 1);
+        }
+    }
 
-    // Pasar dt a las entidades
-    enemies.forEach(e => e.update(dt));
-    towers.forEach(t => t.update(dt));
-    projectiles.forEach(p => p.update(dt));
+    // === PROYECTILES ===
+    for (let p of projectiles) {
+        p.update(dt);
+    }
+    
+    // Eliminar proyectiles que ya impactaron usando splice
+    for (let i = projectiles.length - 1; i >= 0; i--) {
+        if (projectiles[i].hit) {
+            projectiles.splice(i, 1);
+        }
+    }
 
-    for (let i = enemies.length - 1; i >= 0; i--) if (enemies[i].hp <= 0) enemies.splice(i, 1);
-    for (let i = projectiles.length - 1; i >= 0; i--) if (projectiles[i].hit) projectiles.splice(i, 1);
-    // Texto flotante suavizado con dt
+    // === TEXTO FLOTANTE ===
+    for (let t of floatText) {
+        t.y -= 0.8 * dt;
+        t.life -= dt;
+    }
+    
+    // Eliminar textos que expiraron usando splice
     for (let i = floatText.length - 1; i >= 0; i--) {
-        floatText[i].y -= 0.5 * dt;
-        floatText[i].life -= dt;
-        if (floatText[i].life <= 0) floatText.splice(i, 1);
+        if (floatText[i].life <= 0) {
+            floatText.splice(i, 1);
+        }
     }
 
-    // Partículas suavizadas con dt
+    // === PARTÍCULAS ===
     if (gameState.particles && Array.isArray(gameState.particles)) {
-        for (let i = gameState.particles.length - 1; i >= 0; i--) {
-            let pt = gameState.particles[i];
+        for (let pt of gameState.particles) {
             pt.x += (pt.vx || 0) * dt;
             pt.y += (pt.vy || 0) * dt;
-            // aplicar gravedad leve escalada por dt
-            if (!pt.noGravity) pt.vy += 0.03 * dt;
             pt.life -= dt;
             if (pt.fade) {
-                pt.opacity = (pt.life / 60);
+                pt.opacity = Math.max(0, pt.life / 60);
             }
-            if (pt.life <= 0) gameState.particles.splice(i, 1);
         }
+        
+        // Eliminar partículas muertas usando splice
+        for (let i = gameState.particles.length - 1; i >= 0; i--) {
+            if (gameState.particles[i].life <= 0) {
+                gameState.particles.splice(i, 1);
+            }
+        }
+        
+        if (gameState.particles.length > gameState.settings.particleLimit) {
+            gameState.particles.splice(0, gameState.particles.length - gameState.settings.particleLimit);
+        }
+    }
+
+    // === EVALUACIÓN DE DIFICULTAD ===
+    aiDirector.timer += dt;
+    if (aiDirector.timer >= aiDirector.checkInterval) {
+        aiDirector.timer = 0;
+        aiDirector.evaluate();
     }
 }
 
 function draw() {
+    // Obtener el tema actual
+    const theme = mapThemes[gameState.currentMap] || mapThemes.grass;
+    
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // === FONDO CON GRID SUTIL Y CASILLAS CONSTRUIBLES ===
-    ctx.fillStyle = '#5c9646';
+    
+    // === FONDO CON TEMA ACTUAL ===
+    ctx.fillStyle = theme.background;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+    
     // Luz ambiental superior (sutil gradiente)
     let bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    bgGrad.addColorStop(0, hexToRgba('#5c9646', 0.04));
-    bgGrad.addColorStop(1, hexToRgba('#2e7d32', 0.04));
+    bgGrad.addColorStop(0, hexToRgba(theme.backgroundGradientTop, 0.04));
+    bgGrad.addColorStop(1, hexToRgba(theme.backgroundGradientBottom, 0.04));
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+    
     // Resaltar casillas donde SÍ se puede construir (filas 1-8 y 10-17)
     for (let gx = 0; gx < 38; gx++) {
         for (let gy = 0; gy < 18; gy++) {
             let cx = gx * 50 + 25;
             let cy = gy * 50 + 25;
             if (canBuild(cx, cy)) {
-                ctx.fillStyle = '#639d4d';
+                ctx.fillStyle = theme.buildableTile;
                 ctx.fillRect(gx * 50, gy * 50, 50, 50);
             }
         }
     }
 
     // Grid muy tenue solo en casillas construibles
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
+    ctx.strokeStyle = theme.gridLine;
     ctx.lineWidth = 1;
     for (let gx = 0; gx < 38; gx++) {
         for (let gy = 0; gy < 18; gy++) {
@@ -160,19 +256,24 @@ function draw() {
         }
     }
 
-    // === CAMINO ===
+    // === CAMINO CON COLORES DEL TEMA ===
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.strokeStyle = '#3e2723'; ctx.lineWidth = 52;
-    ctx.beginPath(); ctx.moveTo(path[0].x, path[0].y);
-    path.forEach(p => ctx.lineTo(p.x, p.y)); ctx.stroke();
+    ctx.strokeStyle = theme.pathBorder;
+    ctx.lineWidth = 52;
+    ctx.beginPath();
+    ctx.moveTo(path[0].x, path[0].y);
+    path.forEach(p => ctx.lineTo(p.x, p.y));
+    ctx.stroke();
 
-    ctx.strokeStyle = '#795548';
+    ctx.strokeStyle = theme.pathFill;
     ctx.lineWidth = 44;
-    ctx.beginPath(); ctx.moveTo(path[0].x, path[0].y);
-    path.forEach(p => ctx.lineTo(p.x, p.y)); ctx.stroke();
-
-    // === PARTICULAS (debajo de entidades) ===
+    ctx.beginPath();
+    ctx.moveTo(path[0].x, path[0].y);
+    path.forEach(p => ctx.lineTo(p.x, p.y));
+    ctx.stroke();
+    
+    // === PARTÍCULAS (debajo de entidades) ===
     if (gameState.particles && Array.isArray(gameState.particles)) {
         for (let pt of gameState.particles) {
             ctx.globalAlpha = Math.max(0.03, Math.min(1, pt.opacity !== undefined ? pt.opacity : (pt.life / 50)));
@@ -187,9 +288,14 @@ function draw() {
 
     // === ENTIDADES ===
     towers.forEach(t => t.draw());
+    if (gameState.soldiers) gameState.soldiers.forEach(s => s.draw()); // Dibujar soldados
+    
+    // === DIBUJAR HÉROE ===
+    if (gameState.hero) gameState.hero.draw();
+
     enemies.forEach(e => e.draw());
     projectiles.forEach(p => p.draw());
-
+    
     // === TEXTO FLOTANTE ===
     floatText.forEach(ft => {
         ctx.fillStyle = ft.color;
@@ -198,8 +304,8 @@ function draw() {
         let bob = Math.sin((60 - ft.life) * 0.12) * 4;
         ctx.fillText(ft.text, ft.x, ft.y + bob);
     });
-
-    // === PARTICULAS ENCIMA (glow) ===
+    
+    // === PARTÍCULAS ENCIMA (glow) ===
     if (gameState.particles && Array.isArray(gameState.particles)) {
         for (let pt of gameState.particles) {
             if (pt.glow) {

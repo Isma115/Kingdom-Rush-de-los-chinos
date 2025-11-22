@@ -1,4 +1,4 @@
-/* sección [BOSSES] Código para los bosses del juego */
+/*sección [BOSSES] Código para los bosses del juego*/
 class Boss extends Enemy {
     constructor(rosterId) {
         // Modificación: Llamada obligatoria a super() antes de usar 'this'
@@ -38,7 +38,13 @@ class Boss extends Enemy {
         this.lastRegenTime = Date.now();
         // Stats específicos de jefe
         const bossStats = enemyRoster[rosterId];
-        this.maxHp = bossStats.hp * mult * 3; // 3x más fuerte que enemigos normales
+
+        // --- MODIFICACIÓN SOLICITADA: reducir ligeramente la salud del jefe ---
+        // Antes: this.maxHp = bossStats.hp * mult * 3; // 3x más fuerte que enemigos normales
+        // Ahora: reducir el multiplicador global para que los jefes sean algo menos resistentes
+        this.maxHp = bossStats.hp * mult * 2.4; // 2.4x en lugar de 3x
+        // ---------------------------------------------------------------
+
         this.hp = this.maxHp;
         this.shieldMaxHp = this.maxHp * 0.3; // Escudo del 30% de HP máximo
         this.shieldHp = this.shieldMaxHp;
@@ -336,4 +342,4 @@ class Boss extends Enemy {
         this.hitFlash = Math.max(this.hitFlash, Math.min(8, intensity || 4));
     }
 }
-/* [Fin de sección] */
+/*[Fin de sección]*/

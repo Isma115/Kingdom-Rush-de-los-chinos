@@ -1,4 +1,4 @@
-/* sección [SONIDO] Gestión del sonido */
+/*sección [SONIDO] Gestión del sonido*/
 const Sounds = {
     // Contexto de audio compartido (Singleton) para evitar saturar el hardware
     _ctx: null,
@@ -183,4 +183,4 @@ const Sounds = {
         } catch (e) { }
     }
 };
-/* [Fin de sección] */
+/*[Fin de sección]*/

@@ -7,7 +7,6 @@ document.getElementById('gameCanvas').addEventListener('mousemove', (e) => {
     gameState.mouseX = e.clientX - rect.left;
     gameState.mouseY = e.clientY - rect.top;
 });
-
 document.getElementById('gameCanvas').addEventListener('click', (e) => {
     if (!gameState.active) return;
     const canvas = document.getElementById('gameCanvas');
@@ -28,19 +27,42 @@ document.getElementById('gameCanvas').addEventListener('click', (e) => {
             gameState.pendingAbility = null;
             // Quitar resaltado de botones
             updateAbilitiesUI();
-           
+   
+        
             return; // Detener propagación (no construir torres ni seleccionar nada más)
         }
     }
 
+    // === NUEVO: CONTROL DE MOVIMIENTO DEL HÉROE ===
+    // Si el jugador tiene seleccionado el control del héroe, el click define el destino
+    if (gameState.selectedTower === 'hero_control') {
+        if (gameState.hero && !gameState.hero.dead) {
+            // Actualizamos el punto de "Spawn" (punto de retorno/guardia)
+            gameState.hero.spawnX = x;
+            gameState.hero.spawnY = y;
+            
+            // Feedback visual
+            addFloatText('¡EN MARCHA!', x, y - 40, '#FFD700', 20);
+            
+            // Efecto de partículas en el destino
+            for (let i = 0; i < 10; i++) {
+                gameState.particles.push({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 2,
+                    vy: (Math.random() - 0.5) * 2,
+                    life: 30, size: 2, color: '#FFD700', fade: true
+                });
+            }
+        }
+        return; // No hacemos nada más (no construimos)
+    }
+
     // Snap al grid de 50×50
     const gridSize = 50;
-    const gridX = Math.floor(x / gridSize) * gridSize + 25;  
+    const gridX = Math.floor(x / gridSize) * gridSize + 25;
     const gridY = Math.floor(y / gridSize) * gridSize + 25;
-
     // Buscar torre existente para mejorar O eliminar
     const existingTower = towers.find(t => Math.hypot(t.x - x, t.y - y) < 35);
-
     // === LÓGICA DE LA PALA (ELIMINAR ESTRUCTURA) ===
     if (gameState.selectedTower === 'shovel') {
         if (existingTower) {
@@ -60,15 +82,19 @@ document.getElementById('gameCanvas').addEventListener('click', (e) => {
             
             // Sonido de venta (usamos el de hit como feedback genérico por ahora)
             if (Sounds && Sounds.enemyHit) Sounds.enemyHit();
-            
             updateUI();
         }
-        return; // La pala no construye ni mejora, solo elimina o no hace nada
+        return;
+    // La pala no construye ni mejora, solo elimina o no hace nada
     }
 
     if (existingTower) {
-        // DEBUG: oro infinito permite mejorar gratis
+        // DEBUG: oro infinito permite mejorar gratis PERO CON LÍMITE DE NIVEL 10
         if (gameState.debug.infiniteGold || gameState.debug.godMode) {
+            if (existingTower.level >= 10) {
+                addFloatText("MAX LEVEL", existingTower.x, existingTower.y - 30, "#ffeb3b", 16);
+                return;
+            }
             existingTower.level++;
             existingTower.stats.damage = Math.floor(existingTower.stats.damage * 1.5);
             existingTower.stats.range = existingTower.stats.range * 1.1;
@@ -82,11 +108,9 @@ document.getElementById('gameCanvas').addEventListener('click', (e) => {
     }
 
     if (!canBuild(gridX, gridY)) return;
-
     const type = gameState.selectedTower;
     // Si por error se intenta construir la pala como torre, evitamos el crash
     if (type === 'shovel') return;
-
     const cost = towerTypes[type].cost;
 
     // DEBUG: oro infinito = infinito → construir gratis

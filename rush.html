@@ -1,3 +1,4 @@
+<!-- sección [RUSH] HTML Principal -->
 <!DOCTYPE html>
 <html lang="es">
 
@@ -254,7 +255,8 @@
         </div>
         <div class="stats-group">
             <div id="diff-meter">Amenaza: 100%</div>
-            <div class="stat">Oleada: <span id="wave">1</span></div>
+            <div class="stat">Oleada: <span 
+id="wave">1</span></div>
         </div>
     </div>
 
@@ -262,11 +264,15 @@
         <canvas id="gameCanvas" width="800" height="500"></canvas>
         <div id="game-over">
             <h2 style="color: #e53935; font-size: 40px; margin: 0;">REINO CAÍDO</h2>
-            <button class="btn" style="margin-top:20px;" onclick="location.reload()">Nuevo Intento</button>
+            <button class="btn" style="margin-top:20px;"
+onclick="location.reload()">Nuevo Intento</button>
         </div>
     </div>
 
     <div id="controls">
+        <button class="btn" onclick="selectTower('hero_control')"><span class="btn-emoji">👑</span>Héroe
+            <small>(Mover)</small></button>
+
         <button class="btn selected" onclick="selectTower('archer')"><span class="btn-emoji">🏹</span>Arquero
             <small>(70g)</small></button>
         <button class="btn" onclick="selectTower('cannon')"><span class="btn-emoji">💣</span>Cañón
@@ -274,7 +280,8 @@
         <button class="btn" onclick="selectTower('mine')"><span class="btn-emoji">💰</span>Mina
             <small>(100g)</small></button>
         <button class="btn" onclick="selectTower('mage')"><span class="btn-emoji">🧙‍♂️</span>Mago
-            <small>(200g)</small></button>
+ 
+           <small>(200g)</small></button>
         <button class="btn" onclick="selectTower('sniper')"><span class="btn-emoji">🎯</span>Francotirador
             <small>(180g)</small></button>
         <button class="btn" onclick="selectTower('ice')"><span class="btn-emoji">❄️</span>Hielo
@@ -282,7 +289,8 @@
         <button class="btn" onclick="selectTower('infernal')"><span class="btn-emoji">🔥</span>Infernal
             <small>(500g)</small></button>
         <button class="btn" onclick="selectTower('shovel')"><span class="btn-emoji">🛠️</span>Pala
-            <small>(Vender)</small></button>
+         
+   <small>(Vender)</small></button>
     </div>
 
     <div id="abilities-panel">
@@ -293,7 +301,8 @@
         </button>
         <button id="ability-freeze" class="ability-btn" onclick="activateAbility('freeze')">
             <span class="ability-emoji">❄️</span>
-            Congelación
+     
+       Congelación
             <small>35s CD</small>
         </button>
         <button id="ability-fire-bomb" class="ability-btn" onclick="activateAbility('fireBomb')">
@@ -301,13 +310,20 @@
             Bomba de Fuego
             <small>30s CD</small>
         </button>
-    </div>
 
+        <button id="ability-deploy-soldier" class="ability-btn" onclick="activateAbility('deploySoldier')">
+  
+           <span class="ability-emoji">🛡️</span>
+            Soldado
+            <small>15s CD</small>
+        </button>
+    </div>
     <div id="debug-panel" style="display: flex;">
         <button id="debug-lives" class="debug-btn"><span class="debug-emoji">❤️</span>Vidas infinitas</button>
         <button id="debug-gold" class="debug-btn"><span class="debug-emoji">🪙</span>Oro infinito</button>
         <button id="debug-wave" class="debug-btn"><span class="debug-emoji">⚡</span>Oleadas instantáneas</button>
-        <button id="debug-god" class="debug-btn"><span class="debug-emoji">✨</span>MODO DIOS</button>
+        <button 
+id="debug-god" class="debug-btn"><span class="debug-emoji">✨</span>MODO DIOS</button>
         <button id="debug-kill" class="debug-btn" style="color:#ff1744"><span class="debug-emoji">💀</span>MATAR
             TODOS</button>
         <button id="debug-skip" class="debug-btn" style="color:#64b5f6"><span class="debug-emoji">⭐</span>SALTAR
@@ -320,10 +336,15 @@
     <script src="Sounds.js"></script>
     <script src="Enemy.js"></script>
     <script src="Boss.js"></script>
+
+    <script src="Soldado.js"></script>
+    <script src="Heroe.js"></script>
+
     <script src="Tower.js"></script>
     <script src="Projectile.js"></script>
 
-    <script src="aiDirector.js"></script>
+    <script 
+src="aiDirector.js"></script>
     <script src="gameState.js"></script>
     <script src="abilities.js"></script>
     <script src="input.js"></script>
@@ -331,12 +352,21 @@
     <script src="main.js"></script>
 
     <script>
+        // INICIALIZAR EL HÉROE AL CARGAR
+        // Esperamos un momento a que path y clases estén listas
+        setTimeout(() => {
+            if (typeof Hero !== 'undefined' && typeof path !== 'undefined' && path.length > 0) {
+                // Spawneamos el héroe al inicio del camino (o un poco desplazado)
+                gameState.hero = new Hero(path[0].x, path[0].y + 50);
+                addFloatText("¡HÉROE LISTO!", path[0].x, path[0].y, '#FFD700', 24);
+            }
+        }, 200);
+
         document.getElementById('debug-lives').onclick = (event) => {
             gameState.debug.infiniteLives = !gameState.debug.infiniteLives;
             event.currentTarget.classList.toggle('active');
             addFloatText(gameState.debug.infiniteLives ? 'VIDAS INFINITAS ON' : 'VIDAS INFINITAS OFF', canvas.width / 2, 50, '#00ff00', 20);
         };
-
         document.getElementById('debug-gold').onclick = (event) => {
             gameState.debug.infiniteGold = !gameState.debug.infiniteGold;
             event.currentTarget.classList.toggle('active');
@@ -350,7 +380,6 @@
             event.currentTarget.classList.toggle('active');
             addFloatText(gameState.debug.instantWave ? 'OLEADAS INSTANTÁNEAS ON' : 'OLEADAS INSTANTÁNEAS OFF', canvas.width / 2, 90, '#ff9800', 20);
         };
-
         document.getElementById('debug-god').onclick = (event) => {
             const wasOn = gameState.debug.godMode;
             gameState.debug.godMode = !wasOn;
@@ -370,10 +399,13 @@
         };
 
         document.getElementById('debug-kill').onclick = () => {
-            gameState.debug.killAllEnemies = true;
+            // --- NUEVA FUNCIÓN INSTANTÁNEA ---
+            enemies.forEach(e => {
+                e.hp = 0;
+                killEnemy(e);
+            });
             addFloatText('KILL ALL ENEMIES!', canvas.width / 2, 130, '#f44336', 32);
         };
-
         document.getElementById('debug-skip').onclick = () => {
             gameState.debug.skipWave = true;
             addFloatText('SKIP WAVE!', canvas.width / 2, 150, '#2196f3', 26);
@@ -382,3 +414,4 @@
 </body>
 
 </html>
+<!-- [Fin de sección] */ -->
