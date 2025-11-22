@@ -13,6 +13,9 @@ let gameState = {
     // NUEVO: Referencia al Héroe único
     hero: null,
 
+    // NUEVO: Temporizador de reaparición del héroe
+    heroRespawnTimer: 0,
+
     // NUEVO: Sistema de apuntado de habilidades
     pendingAbility: null, // String: 'arrowRain', 'freeze', etc.
     mouseX: 0,

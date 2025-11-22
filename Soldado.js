@@ -27,7 +27,7 @@ class Soldier {
         // Distancia para empezar a perseguir
         
         this.attackCooldown = 0;
-        this.attackSpeed = 60;
+        this.actualAttackCoolDown = 60;
         this.dead = false;
         
         // MOVIMIENTO
@@ -73,7 +73,7 @@ class Soldier {
                         if (target.hp <= 0) killEnemy(target);
                     }
                     
-                    this.attackCooldown = this.attackSpeed;
+                    this.attackCooldown = this.actualAttackCoolDown;
                     // Efecto visual del golpe
                     if (gameState.particles) {
                         gameState.particles.push({
@@ -161,89 +161,3 @@ class Soldier {
         ctx.fillRect(barX, barY, barWidth * hpPercent, barHeight);
     }
 }
-
-// --- CLASE HÉROE (HERENCIA) ---
-class Hero extends Soldier {
-    constructor(x, y) {
-        super(x, y);
-        // Estadísticas fijas para el Héroe
-        this.hp = 4000;
-        this.maxHp = 4000;
-        
-        // Aspecto visual distintivo
-        this.color = '#FFD700'; // Dorado
-        this.radius = 12; // Ligeramente más grande
-        
-        // Estadísticas de combate mejoradas
-        this.damage = 80; 
-        this.attackSpeed = 45; // Ataca más rápido
-        // --- MODIFICACIÓN: Velocidad duplicada (Antes 2.2, ahora 4.4) ---
-        this.speed = 4.4;
-        
-        // --- MODIFICACIÓN: Rango de detección mayor para el héroe ---
-        this.detectionRange = 200; // Mayor rango que los soldados normales
-        
-        // --- NUEVA PROPIEDAD: Objetivo del click del jugador ---
-        this.playerOrderX = x;
-        this.playerOrderY = y;
-        
-        // --- NUEVA PROPIEDAD: Flag para saber si está ejecutando orden del jugador ---
-        this.followingPlayerOrder = false;
-    }
-
-    // --- MODIFICACIÓN: Sobrescritura de update para prioridad de movimiento ---
-    update(dt = 1.0) {
-        if (this.dead) return;
-
-        // 1. PRIORIDAD MÁXIMA: Si hay una orden del jugador activa, SOLO moverse hacia ella
-        if (this.followingPlayerOrder) {
-            let distToOrder = Math.hypot(this.playerOrderX - this.x, this.playerOrderY - this.y);
-            
-            // Si aún estamos lejos del objetivo (> 5px), seguir moviéndonos
-            if (distToOrder > 5) {
-                let dx = this.playerOrderX - this.x;
-                let dy = this.playerOrderY - this.y;
-                
-                // Mover hacia el destino ordenado
-                this.x += (dx / distToOrder) * this.speed * dt;
-                this.y += (dy / distToOrder) * this.speed * dt;
-                
-                // Reducimos cooldown mientras caminamos
-                if (this.attackCooldown > 0) this.attackCooldown -= dt;
-                
-                // IMPORTANTE: Salimos aquí, ignorando completamente a los enemigos
-                return;
-            } else {
-                // Ya llegamos al destino de la orden
-                this.followingPlayerOrder = false;
-                // Actualizamos nuestra posición de "hogar" al punto donde nos ordenaron ir
-                this.spawnX = this.playerOrderX;
-                this.spawnY = this.playerOrderY;
-            }
-        }
-
-        // 2. MODO VIGILANCIA: Sin órdenes activas, comportamiento autónomo
-        // Aquí usamos la lógica completa del soldado para detectar y perseguir enemigos
-        super.update(dt);
-    }
-
-    draw() {
-        if (this.dead) return;
-        
-        // Aura del héroe
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius + 4, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
-        ctx.fill();
-
-        // Reutilizamos el dibujado base pero con los colores actualizados del constructor
-        super.draw();
-
-        // Distintivo de corona/estrella
-        ctx.fillStyle = '#FFF';
-        ctx.font = '12px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('👑', this.x, this.y - this.radius - 15);
-    }
-}
-/*[Fin de sección]*/
